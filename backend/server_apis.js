@@ -4,7 +4,7 @@ const express = require('express')
 const app = express()
 const port = 3000
 
-const pathToAPI = 'C:/Users/cstri/gpusforall/backend/apis'
+const pathToAPI = '/Users/eugene/gpusforall/backend/apis'
 const fileArray = fileSystem.readdirSync(pathToAPI).map(file => path.join(pathToAPI, file))
 const apiArray = [].concat.apply([],fileArray.map(filePath => {return require(filePath)}))
 console.log(`line 10: ${fileArray} `)
