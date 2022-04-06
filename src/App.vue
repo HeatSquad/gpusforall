@@ -9,7 +9,7 @@
     
     <div>
       <b-navbar toggleable="md" type="dark" variant="info" class="pr-3">
-        <b-navbar-brand href="/">
+        <b-navbar-brand href="/" class="m-3">
           <img src="/images/8bitgpu.jpeg"/> GPUs 4 All
         </b-navbar-brand>
 
@@ -24,17 +24,20 @@
             <b-nav-item to="/about">Open box</b-nav-item>
             <b-nav-item to="/about">Upcoming</b-nav-item>
           </b-navbar-nav>
+
+          <b-navrbar-nav class="ml-auto">
+            <b-nav-form class="mr-3">
+              <b-form-input size="sm" class="mr-sm-2" placeholder="Search"></b-form-input>
+              <b-button size="sm" class="my-2 my-sm-0" type="submit">Search</b-button>
+            </b-nav-form>
+          </b-navrbar-nav>
         </b-collapse>
-        <b-nav-form class="mr-3">
-          <b-row class="mr-3">
-            <b-col cols=8>
-              <b-form-input size="sm" class="mr-3" placeholder="Search"></b-form-input>
-            </b-col>
-            <b-col cols=4>
-              <b-button size="sm" class="mr-3" type="submit">Search</b-button>
-            </b-col>
-          </b-row>
-        </b-nav-form>
+
+        
+        
+
+        
+        
       </b-navbar>
     </div>
 
