@@ -12,9 +12,7 @@
         <b-navbar-brand href="/" class="m-3">
           <img src="/images/8bitgpu.jpeg"/> GPUs 4 All
         </b-navbar-brand>
-
         <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
-
         <b-collapse id="nav-collapse" is-nav>
           <b-navbar-nav>
             <b-nav-item to="/">Home</b-nav-item>
@@ -24,7 +22,6 @@
             <b-nav-item to="/about">Open box</b-nav-item>
             <b-nav-item to="/about">Upcoming</b-nav-item>
           </b-navbar-nav>
-
           <b-navrbar-nav class="ml-auto">
             <b-nav-form class="mr-3">
               <b-form-input size="sm" class="mr-sm-2" placeholder="Search"></b-form-input>
@@ -32,12 +29,6 @@
             </b-nav-form>
           </b-navrbar-nav>
         </b-collapse>
-
-        
-        
-
-        
-        
       </b-navbar>
     </div>
 
@@ -71,8 +62,6 @@
     <!-- Footer -->
   </div>
 </template>
-
-
 
 <style lang="scss">
 html,body {
