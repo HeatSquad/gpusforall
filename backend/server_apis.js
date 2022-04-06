@@ -1,10 +1,14 @@
-const fileSystem = require('fs')
-const path = require('path')
-const express = require('express')
-const app = express()
-const port = 3000
+const express = require('express');
+const app = express();
+const fileSystem = require('fs');
+const path = require('path');
+const port = 3000;
 
-const pathToAPI = '/Users/eugene/gpusforall/backend/apis'
+// const pathToAPI = '';
+// const pathToAPI = '';
+// const pathToAPI = '/Users/eugene/gpusforall/backend/apis';
+const pathToAPI = 'C:\\GodModule\\gpusforall\\backend\\apis';
+
 const fileArray = fileSystem.readdirSync(pathToAPI).map(file => path.join(pathToAPI, file))
 const apiArray = [].concat.apply([],fileArray.map(filePath => {return require(filePath)}))
 console.log(`line 10: ${fileArray} `)
