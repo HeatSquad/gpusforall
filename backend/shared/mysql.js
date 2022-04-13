@@ -66,7 +66,7 @@ async function execMySql(sqlStmt, arrayBindParams, isWriting)
         jsonPoolError['status'] = 'ERROR';
         jsonPoolError['message'] = '';
         jsonPoolError['resultset'] = null;
-        jsonPoolError['fields'] = null;
+        // jsonPoolError['fields'] = null;
         return jsonPoolError;
     }
 
@@ -76,7 +76,7 @@ async function execMySql(sqlStmt, arrayBindParams, isWriting)
         jsonResult['status'] = 'ERROR';
         jsonResult['message'] = '';
         jsonResult['resultset'] = null;
-        jsonResult['fields'] = null;
+        // jsonResult['fields'] = null;
 
         pool.getConnection(function(errorConnection, connection) 
         {
@@ -93,7 +93,7 @@ async function execMySql(sqlStmt, arrayBindParams, isWriting)
         
             if (arrayBindParams.length > 0)
             {
-                const numExpectedPlaceholders = arrayBindParams.split('?');
+                const numExpectedPlaceholders = sqlStmt.split('?').length - 1;
                 if (numExpectedPlaceholders != arrayBindParams.length)
                 {
                     jsonResult['message'] = `Expected ${numExpectedPlaceholders} placeholders but found ${arrayBindParams.length}`;
@@ -121,7 +121,7 @@ async function execMySql(sqlStmt, arrayBindParams, isWriting)
                 jsonResult['status'] = 'SUCCESS';
                 jsonResult['message'] = 'Query was successfully executed.';
                 jsonResult['resultset'] = results;
-                jsonResult['fields'] = fields;
+                // jsonResult['fields'] = fields;
             
                 // Don't use the connection here, it has been returned to the pool.
                 resolve(jsonResult);
@@ -133,6 +133,8 @@ async function execMySql(sqlStmt, arrayBindParams, isWriting)
         return jsonError;
     });
     const jsonExecMySqlOutput = await jsonExecMySqlPromise;
+    console.log('Line 136 mysql');
+    console.log(jsonExecMySqlOutput);
     return jsonExecMySqlOutput;
 }
 module.exports =
