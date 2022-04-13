@@ -133,8 +133,6 @@ async function execMySql(sqlStmt, arrayBindParams, isWriting)
         return jsonError;
     });
     const jsonExecMySqlOutput = await jsonExecMySqlPromise;
-    console.log('Line 136 mysql');
-    console.log(jsonExecMySqlOutput);
     return jsonExecMySqlOutput;
 }
 module.exports =
