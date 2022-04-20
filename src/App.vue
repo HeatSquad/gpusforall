@@ -1,38 +1,42 @@
 <template>
   <div id="app">
-    <!--
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    -->
-    
-    <div>
-      <b-navbar toggleable="md" type="dark" variant="info" class="pr-3">
-        <b-navbar-brand href="/" class="m-3">
-          <img src="/images/8bitgpu.jpeg"/> GPUs 4 All
-        </b-navbar-brand>
-        <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
-        <b-collapse id="nav-collapse" is-nav>
-          <b-navbar-nav>
-            <b-nav-item to="/">Home</b-nav-item>
-            <b-nav-item to="/about">About</b-nav-item>
-            <b-nav-item to="/about">Specials</b-nav-item>
-            <b-nav-item to="/about">Top Sellers</b-nav-item>
-            <b-nav-item to="/about">Open box</b-nav-item>
-            <b-nav-item to="/about">Upcoming</b-nav-item>
-          </b-navbar-nav>
-          <b-navrbar-nav class="ml-auto">
-            <b-nav-form class="mr-3">
-              <b-form-input size="sm" class="mr-sm-2" placeholder="Search"></b-form-input>
-              <b-button size="sm" class="my-2 my-sm-0" type="submit">Search</b-button>
-            </b-nav-form>
-          </b-navrbar-nav>
-        </b-collapse>
-      </b-navbar>
-    </div>
+    <!-- Menu -->
+    <b-navbar toggleable="md" type="dark" variant="info" class="pr-3">
+      <b-navbar-brand to="/" class="m-3">
+        <img src="/images/8bitgpu.jpeg"/> GPUs 4 All
+      </b-navbar-brand>
+      <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
+      <b-collapse id="nav-collapse" is-nav>
+        <b-navbar-nav>
+          <b-nav-item to="/">Home</b-nav-item>
+          <b-nav-item to="/about">About</b-nav-item>
+          <b-nav-item to="/about">Specials</b-nav-item>
+          <b-nav-item to="/about">Top Sellers</b-nav-item>
+          <b-nav-item to="/about">Open box</b-nav-item>
+          <b-nav-item to="/about">Upcoming</b-nav-item>
+        </b-navbar-nav>
+        <b-navbar-nav class="ml-auto">
+          <b-nav-form class="mr-3">
+            <b-form-input size="sm" class="mr-sm-2" placeholder="Search"></b-form-input>
+            <b-button size="sm" class="my-2 my-sm-0" type="submit">Search</b-button>
+          </b-nav-form>
+        </b-navbar-nav>
+        <b-navbar-nav class="align-items-center">
+          <b-icon icon="person-circle" variant="white"></b-icon>
+            <b-nav-item-dropdown text="Thuc Nguyen" variant="danger" right>
+              <b-dropdown-item to="/user">Account</b-dropdown-item>
+              <b-dropdown-item to="/">Cart</b-dropdown-item>
+              <b-dropdown-item to="/">Wishlist</b-dropdown-item>
+              <b-dropdown-item to="/">Orders</b-dropdown-item>
+              <b-dropdown-item to="/">Transactions</b-dropdown-item>
+              <b-dropdown-item to="/">Settings</b-dropdown-item>
+            </b-nav-item-dropdown>
+        </b-navbar-nav>
+      </b-collapse>
+    </b-navbar>
 
-    <router-view id="routerview"/>
+    <!-- View -->
+    <router-view id="routerview"/>  
 
     <!-- Footer -->
     <div id="footer" class="mt-5 pt-5 pb-5">
@@ -59,11 +63,10 @@
         </b-container>
       </div>
     </div>
-    <!-- Footer -->
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 html,body {
   width: 100%;
   height: 100%;
@@ -72,16 +75,14 @@ html,body {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  align-items: stretch;
 }
 
 #routerview{
-    flex-grow: 1;
+  flex-grow: 1;
 }
 
 #nav {
