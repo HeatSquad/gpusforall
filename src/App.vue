@@ -35,7 +35,7 @@
     <router-view id="routerview"/>
 
     <!-- Footer -->
-    <div id="footer">
+    <div id="footer" class="mt-5 pt-5 pb-5">
       <b-container class="text-left">
         <b-row>
           <b-col sm="6">
