@@ -15,7 +15,7 @@
                             </b-form-group>
                         </b-col>
                         <b-col cols="6">
-                            <b-form-group id="inputGroupFirstName" label="Last Name:" label-for="inputLastName">
+                            <b-form-group id="inputGroupLastName" label="Last Name:" label-for="inputLastName">
                                 <b-form-input id="inputLastName" v-model="lastName" placeholder="Enter last name" maxLength="100" required></b-form-input>
                             </b-form-group>
                         </b-col>
@@ -147,7 +147,7 @@
                 <b-card>
                     <h3>Payment Information</h3>
                     <br>
-                    <b-row v-for="(cardObject, index) in paymentInfo.cards" :key="card+index" align-h="between" class="border-bottom mx-1 mb-3">
+                    <b-row v-for="(cardObject, index) in paymentInfo.cards" :key="'card_'+index" align-h="between" class="border-bottom mx-1 mb-3">
                         <b-col cols="4">
                             <div class="font-weight-bold text-black-75">{{cardObject.cardNetwork}} ending in {{cardObject.lastFourDigits}}</div>
                             <div class="text-muted">{{cardObject.expiration}}</div>
@@ -203,6 +203,7 @@ export default {
     },
     data() {
         return {
+            userid: '',
             firstName: '',
             lastName: '',
             email: '',
@@ -243,8 +244,12 @@ export default {
     // ====================================================
     // Lifecycle Methods
     // ====================================================
-    created() {
+    created: async function() {
         console.log('Component is created. Template has not yet compiled. After created, check if there is a pre-compiled template, compile if there isn\'t one');
+        // TODO: Get userid from the cookie/session instead of hardcoding here
+        this.userid = 'USR-0000001';
+
+        await this.fetchCurrentUser();
     },
     mounted() {
         console.log('Component is mounted. Ran after the component has finished initial rendering and created the DOM nodes.');
@@ -265,6 +270,11 @@ export default {
     // Methods
     // ====================================================
     methods: {
+        async fetchCurrentUser()
+        {
+            console.log('Fetching current user...');
+            this.performHttpRequest();
+        },
     }
 }
 </script>
