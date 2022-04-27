@@ -1,4 +1,6 @@
-const config = require('dotenv').config();
+const fileSystem = require('fs');
+const path = require('path');
+const config = require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 if (config.error)
 {
   console.error('Failed to load environmental variables');
@@ -7,8 +9,6 @@ if (config.error)
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const fileSystem = require('fs');
-const path = require('path');
 const app = express();
 const port = 3000;
 const whitelistedDomains = process.env.WHITELISTED_DOMAINS.split(' ');
