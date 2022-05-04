@@ -1,7 +1,7 @@
 <template>
     <b-container fluid class="user-profile-management-container" style="border: 1px dashed red">
         <b-row class="justify-content-end py-2 mb-4">
-            <b-button class="mx-2 px-4">Orders</b-button>
+            <b-button class="mx-2 px-4" @click="fetchCurrentUser">Orders</b-button>
             <b-button class="mx-2 px-4">Transactions</b-button>
             <b-button class="mx-2 px-4">Wishlist</b-button>
         </b-row>
@@ -250,6 +250,7 @@ export default {
         this.userid = 'USR-0000001';
 
         await this.fetchCurrentUser();
+        this.performShowSuccessMessage(`Successfully fetched user`);
     },
     mounted() {
         console.log('Component is mounted. Ran after the component has finished initial rendering and created the DOM nodes.');
@@ -273,7 +274,11 @@ export default {
         async fetchCurrentUser()
         {
             console.log('Fetching current user...');
-            this.performHttpRequest();
+            const userid = this.userid;
+            const apiUrl = `/jsonFetchUser/${userid}`;
+            const jsonFetchCurrentUserOutput = await this.performGetHttpRequest(apiUrl);
+            console.log(jsonFetchCurrentUserOutput);
+            if (jsonFetchCurrentUserOutput['status'] != 'SUCCESS') return 
         },
     }
 }

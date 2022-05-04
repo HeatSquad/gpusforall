@@ -46,6 +46,7 @@ function processResponse(req, res, next)
 {
   if (!res.pendingResponse) return next(new Error('Pending response object is undefined'));
   
+  console.log(res.apiEndpoint);
   const status = res.pendingResponse['status'];
   const message = res.pendingResponse['message'];
   const resultset = res.pendingResponse['resultset'];
@@ -94,26 +95,31 @@ for (let i = 0; i < apiArray.length; i++)
     if (method === 'ALL') app.all(`/apis/${path}`, async (req, res, next) =>
     {
       res.pendingResponse = await handler(req,res);
+      res.apiEndpoint = `/apis/${path}`;
       next();
     }, processResponse);
     if (method === 'PUT') app.put(`/apis/${path}`, async (req, res, next) =>
     {
       res.pendingResponse = await handler(req,res);
+      res.apiEndpoint = `/apis/${path}`;
       next();
     }, processResponse);
     if (method === 'GET') app.get(`/apis/${path}`, async (req, res, next) =>
     {
       res.pendingResponse = await handler(req,res);
+      res.apiEndpoint = `/apis/${path}`;
       next();
     }, processResponse);
     if (method === 'POST') app.post(`/apis/${path}`, async (req, res, next) =>
     {
       res.pendingResponse = await handler(req,res);
+      res.apiEndpoint = `/apis/${path}`;
       next();
     }, processResponse);
     if (method === 'DELETE') app.delete(`/apis/${path}`, async (req, res, next) =>
     {
       res.pendingResponse = await handler(req,res);
+      res.apiEndpoint = `/apis/${path}`;
       next();
     }, processResponse);
 }

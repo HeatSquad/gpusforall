@@ -1,4 +1,4 @@
-function replywith_jsonInvalidParameters(message, req, res)
+function replywith_jsonInvalidParameters(message)
 {
     const jsonResult = {};
     jsonResult['status'] = 'ERROR';
@@ -7,7 +7,7 @@ function replywith_jsonInvalidParameters(message, req, res)
     return jsonResult;
 }
 
-function replywith_jsonErrorMessage(message, req, res)
+function replywith_jsonErrorMessage(message)
 {
     const jsonResult = {};
     jsonResult['status'] = 'ERROR';
