@@ -6,13 +6,15 @@ import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 // Import Bootstrap an BootstrapVue CSS files (order is important)
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
-import Mixins from './util/mixins.js'
+import HttpMixins from './util/mixins_http.js'
+import ToastMixins from './util/mixins_toast.js'
 
 // Make BootstrapVue available throughout your project
 Vue.use(BootstrapVue)
 // Optionally install the BootstrapVue icon components plugin
 Vue.use(IconsPlugin)
-Vue.mixin(Mixins)
+Vue.mixin(HttpMixins)
+Vue.mixin(ToastMixins)
 
 Vue.config.productionTip = false
 
