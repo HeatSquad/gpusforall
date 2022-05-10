@@ -1,5 +1,5 @@
-const mySqlConnection = require('../shared/mysql.js');
-const gpusGeneral = require('../shared/general.js');
+const mySqlConnection = require('../../shared/wrappers_mysql.js');
+const gpusGeneral = require('../../shared/general.js');
 
 const apiArray = []
 module.exports = apiArray;
@@ -116,8 +116,8 @@ async function replyto_jsonDeleteReviews(req, res)
     if (req.body.userid === undefined) return gpusGeneral.replywith_jsonInvalidParameters('Missing required parameter: userid', req, res);
 
     const arrayBindParams = [];
-    arrayBindParams.push(req.body.productid);
     arrayBindParams.push(req.body.userid);
+    arrayBindParams.push(req.body.productid);
     const sqlStmtDeleteReviews = `
         UPDATE reviews
         SET deleted = 'Y'
