@@ -26,7 +26,7 @@
             <b-nav-item-dropdown text="Thuc Nguyen" variant="danger" right>
               <b-dropdown-item to="/user">Account</b-dropdown-item>
               <b-dropdown-item to="/">Cart</b-dropdown-item>
-              <b-dropdown-item to="/">Wishlist</b-dropdown-item>
+              <b-dropdown-item to="/wishlist">Wishlist</b-dropdown-item>
               <b-dropdown-item to="/">Orders</b-dropdown-item>
               <b-dropdown-item to="/">Transactions</b-dropdown-item>
               <b-dropdown-item to="/">Settings</b-dropdown-item>
