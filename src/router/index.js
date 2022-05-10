@@ -23,6 +23,11 @@ const routes = [
     name: 'User',
     component: () => import(/* webpackChunkName: "about" */ '../views/User.vue')
   },
+  {
+    path: '/wishlist',
+    name: 'Wishlist',
+    component: () => import(/* webpackChunkName: "about" */ '../views/Wishlist.vue')
+  },
 ]
 
 const router = new VueRouter({
