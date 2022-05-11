@@ -83,12 +83,12 @@ async function execMySql(sqlStmt, arrayBindParams, isWriting)
             if (errorConnection != null) // not connected!
             {
                 jsonResult['message'] = `Unable to obtain a connection! ${errorConnection}`;
-                reject(jsonResult);
+                return reject(jsonResult);
             }
             if (connection == null)
             {
                 jsonResult['message'] = `Connection does not exist!`;
-                reject(jsonResult);
+                return reject(jsonResult);
             }
         
             if (arrayBindParams.length > 0)
@@ -97,7 +97,7 @@ async function execMySql(sqlStmt, arrayBindParams, isWriting)
                 if (numExpectedPlaceholders != arrayBindParams.length)
                 {
                     jsonResult['message'] = `Expected ${numExpectedPlaceholders} placeholders but found ${arrayBindParams.length}`;
-                    reject(jsonResult);
+                    return reject(jsonResult);
                 }
             }
         
@@ -114,8 +114,10 @@ async function execMySql(sqlStmt, arrayBindParams, isWriting)
                 // Handle error after the release.
                 if (errorQuery)
                 {
+                    console.log('ERROR');
+                    console.log(errorQuery);
                     jsonResult['message'] = `Query failed to execute. ${errorQuery}`;
-                    reject(jsonResult);
+                    return reject(jsonResult);
                 }
                 if (results === undefined || results == null) results = [];
 
@@ -125,7 +127,7 @@ async function execMySql(sqlStmt, arrayBindParams, isWriting)
                 // jsonResult['fields'] = fields;
             
                 // Don't use the connection here, it has been returned to the pool.
-                resolve(jsonResult);
+                return resolve(jsonResult);
             });
         });
     })
