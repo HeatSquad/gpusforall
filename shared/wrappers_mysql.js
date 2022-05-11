@@ -75,7 +75,7 @@ async function execMySql(sqlStmt, arrayBindParams, isWriting)
         const jsonResult = {};
         jsonResult['status'] = 'ERROR';
         jsonResult['message'] = '';
-        jsonResult['resultset'] = null;
+        jsonResult['resultset'] = [];
         // jsonResult['fields'] = null;
 
         pool.getConnection(function(errorConnection, connection) 
@@ -117,6 +117,7 @@ async function execMySql(sqlStmt, arrayBindParams, isWriting)
                     jsonResult['message'] = `Query failed to execute. ${errorQuery}`;
                     reject(jsonResult);
                 }
+                if (results === undefined || results == null) results = [];
 
                 jsonResult['status'] = 'SUCCESS';
                 jsonResult['message'] = 'Query was successfully executed.';

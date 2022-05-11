@@ -66,7 +66,7 @@ async function replyto_jsonFetchUser(req, res)
            email,
            first_name,
            last_name,
-           dob,
+           DATE_FORMAT(dob, '%Y-%m-%d') AS dob,
            json_address,
            json_user,
            created,
@@ -94,3 +94,4 @@ apiArray.push(
         }
     }
 );
+
