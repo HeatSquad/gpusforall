@@ -3,7 +3,7 @@
         <b-row class="justify-content-end py-2 mb-4">
             <b-button class="mx-2 px-4" @click="fetchCurrentUser">Orders</b-button>
             <b-button class="mx-2 px-4">Transactions</b-button>
-            <b-button class="mx-2 px-4">Wishlist</b-button>
+            <b-button class="mx-2 px-4" to="/wishlist">Wishlist</b-button>
         </b-row>
         <b-row class="justify-content-between">
             <b-col cols="8">
