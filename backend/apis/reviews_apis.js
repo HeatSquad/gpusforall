@@ -15,23 +15,28 @@ async function replyto_jsonFetchReviewsByProductID(req, res)
             r.userid,
             r.title,
             r.text,
-            r.created,
-            r.created_by,
-            r.modified,
-            r.modified_by,
+            r.created AS review_created,
+            r.created_by AS review_created_by,
+            r.modified AS review_modified,
+            r.modified_by AS review_modified_by,
 
             ri.imageid,
-            ri.image_path,
-            ri.created,
-            ri.created_by,
-            ri.modified,
-            ri.modified_by
+            ri.image,
+            ri.created AS image_created,
+            ri.created_by AS image_created_by,
+            ri.modified AS image_modified,
+            ri.modified_by AS image_modified_by,
+
+            u.first_name,
+            u.last_name
         FROM reviews r
             LEFT JOIN review_images ri ON ri.reviewid = r.reviewid
+            LEFT JOIN users u ON u.userid = r.userid
         WHERE
             r.deleted <> 'Y'
             AND (ri.deleted <> 'Y' OR ri.deleted IS NULL)
             AND r.productid = ?
+            AND u.deleted <> 'Y'
     `;
     const jsonFetchReviewsPromise = mySqlConnection.execMySql(sqlStmtFetchReviews, arrayBindParams);
     const jsonFetchReviewsOutput = await jsonFetchReviewsPromise;
@@ -69,23 +74,28 @@ async function replyto_jsonFetchReviewsByUserID(req, res)
             r.userid,
             r.title,
             r.text,
-            r.created,
-            r.created_by,
-            r.modified,
-            r.modified_by,
+            r.created AS review_created,
+            r.created_by AS review_created_by,
+            r.modified AS review_modified,
+            r.modified_by AS review_modified_by,
 
             ri.imageid,
-            ri.image_path,
-            ri.created,
-            ri.created_by,
-            ri.modified,
-            ri.modified_by
+            ri.image,
+            ri.created AS image_created,
+            ri.created_by AS image_created_by,
+            ri.modified AS image_modified,
+            ri.modified_by AS image_modified_by,
+
+            u.first_name,
+            u.last_name
         FROM reviews r
             LEFT JOIN review_images ri ON ri.reviewid = r.reviewid
+            LEFT JOIN users u ON u.userid = r.userid
         WHERE
             r.deleted <> 'Y'
             AND (ri.deleted <> 'Y' OR ri.deleted IS NULL)
             AND r.userid = ?
+            AND u.deleted <> 'Y'
     `;
     const jsonFetchReviewsPromise = mySqlConnection.execMySql(sqlStmtFetchReviews, arrayBindParams);
     const jsonFetchReviewsOutput = await jsonFetchReviewsPromise;
