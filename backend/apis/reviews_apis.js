@@ -13,24 +13,30 @@ async function replyto_jsonFetchReviewsByProductID(req, res)
             r.reviewid, 
             r.productid,
             r.userid,
+            r.title,
             r.text,
-            r.created,
-            r.created_by,
-            r.modified,
-            r.modified_by,
+            r.created AS review_created,
+            r.created_by AS review_created_by,
+            r.modified AS review_modified,
+            r.modified_by AS review_modified_by,
 
             ri.imageid,
-            ri.image_path,
-            ri.created,
-            ri.created_by,
-            ri.modified,
-            ri.modified_by
+            ri.image,
+            ri.created AS image_created,
+            ri.created_by AS image_created_by,
+            ri.modified AS image_modified,
+            ri.modified_by AS image_modified_by,
+
+            u.first_name,
+            u.last_name
         FROM reviews r
             LEFT JOIN review_images ri ON ri.reviewid = r.reviewid
+            LEFT JOIN users u ON u.userid = r.userid
         WHERE
             r.deleted <> 'Y'
             AND (ri.deleted <> 'Y' OR ri.deleted IS NULL)
             AND r.productid = ?
+            AND u.deleted <> 'Y'
     `;
     const jsonFetchReviewsPromise = mySqlConnection.execMySql(sqlStmtFetchReviews, arrayBindParams);
     const jsonFetchReviewsOutput = await jsonFetchReviewsPromise;
@@ -66,24 +72,30 @@ async function replyto_jsonFetchReviewsByUserID(req, res)
             r.reviewid, 
             r.productid,
             r.userid,
+            r.title,
             r.text,
-            r.created,
-            r.created_by,
-            r.modified,
-            r.modified_by,
+            r.created AS review_created,
+            r.created_by AS review_created_by,
+            r.modified AS review_modified,
+            r.modified_by AS review_modified_by,
 
             ri.imageid,
-            ri.image_path,
-            ri.created,
-            ri.created_by,
-            ri.modified,
-            ri.modified_by
+            ri.image,
+            ri.created AS image_created,
+            ri.created_by AS image_created_by,
+            ri.modified AS image_modified,
+            ri.modified_by AS image_modified_by,
+
+            u.first_name,
+            u.last_name
         FROM reviews r
             LEFT JOIN review_images ri ON ri.reviewid = r.reviewid
+            LEFT JOIN users u ON u.userid = r.userid
         WHERE
             r.deleted <> 'Y'
             AND (ri.deleted <> 'Y' OR ri.deleted IS NULL)
             AND r.userid = ?
+            AND u.deleted <> 'Y'
     `;
     const jsonFetchReviewsPromise = mySqlConnection.execMySql(sqlStmtFetchReviews, arrayBindParams);
     const jsonFetchReviewsOutput = await jsonFetchReviewsPromise;
@@ -179,13 +191,14 @@ async function replyto_jsonSubmitReviews(req, res)
     const arrayBindParams = [];
     arrayBindParams.push(req.body.productid);
     arrayBindParams.push(req.body.userid);
+    arrayBindParams.push(req.body.title);
     arrayBindParams.push(req.body.text);
     arrayBindParams.push(req.body.userid);
     arrayBindParams.push(req.body.userid);
 
     const sqlStmtSubmitReviews = `
-        INSERT INTO reviews (productid, userid, text, created_by, modified_by)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO reviews (productid, userid, title, text, created_by, modified_by)
+        VALUES (?, ?, ?, ?, ?, ?)
     `;
     const jsonSubmitReviewsPromise = mySqlConnection.execMySql(sqlStmtSubmitReviews, arrayBindParams);
     const jsonSubmitReviewsOutput = await jsonSubmitReviewsPromise;
@@ -275,6 +288,7 @@ async function replyto_jsonEditReviews(req, res)
     if (req.body.text === undefined) return gpusGeneral.replywith_jsonInvalidParameters('Missing required parameter: text', req, res);
 
     const arrayBindParams = [];
+    arrayBindParams.push(req.body.title);
     arrayBindParams.push(req.body.text);
     arrayBindParams.push(req.body.reviewid);
     arrayBindParams.push(req.body.productid);
@@ -282,7 +296,8 @@ async function replyto_jsonEditReviews(req, res)
 
     const sqlStmtEditReviews = `
         UPDATE reviews
-        SET text = ?
+        SET title = ?,
+            text = ?
         WHERE reviewid = ?
         AND productid = ?
         AND userid = ?
