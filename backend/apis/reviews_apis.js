@@ -187,6 +187,7 @@ async function replyto_jsonSubmitReviews(req, res)
     if (req.body.productid === undefined) return gpusGeneral.replywith_jsonInvalidParameters('Missing required parameter: productid', req, res);
     if (req.body.userid === undefined) return gpusGeneral.replywith_jsonInvalidParameters('Missing required parameter: userid', req, res);
     if (req.body.text === undefined) return gpusGeneral.replywith_jsonInvalidParameters('Missing required parameter: text', req, res);
+    if (req.body.title === undefined) return gpusGeneral.replywith_jsonInvalidParameters('Missing required parameter: title', req, res);
 
     const arrayBindParams = [];
     arrayBindParams.push(req.body.productid);
