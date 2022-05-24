@@ -25,6 +25,15 @@
             style="color:green">
             {{ successMessage }}
         </span>
+        <div class="mb-3">
+            <input class="btn btn-outline-dark" type="button" id="imgUploadBtn" value="Upload Image" onclick="document.getElementById('imgUpload').click();" />
+            <input class="form-control-sm" type="file" id="imgUpload" accept="image/*" style="display:none" @change="fileImages()" multiple>
+        </div>
+        <b-row class="mb-3">
+            <div v-for="item in imgArray" :key="item">
+                <img :src="item" width="100" height="100" style="padding-left:10px"> 
+            </div>
+        </b-row>
         <br>
         <b-row class="float-right">
             <b-button
@@ -53,6 +62,7 @@ export default {
             errorMessage : '',
             showSuccess : false,
             successMessage : '',
+            imgArray : [],
         }
     },
     props :
@@ -99,7 +109,24 @@ export default {
             this.showError = false;
             this.successMessage = '';
             this.showSuccess = false;
-        }
+        },
+        async fileImages()
+        {
+            let files = document.getElementById("imgUpload").files;
+            for(let i = 0; i < files.length; i++)
+            {
+                this.imgArray.push(await this.toBase64(files[i]));
+            }
+        },
+        toBase64(file)
+        {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        },
     },
     computed : 
     {
