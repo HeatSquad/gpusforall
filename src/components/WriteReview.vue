@@ -74,7 +74,7 @@ export default {
     {  
         this.reviewsArray = await this.fetchReviews();
     },
-    methods : 
+    methods :
     {
         async submitReview()
         {
@@ -86,6 +86,7 @@ export default {
             params['userid'] = this.userid;
             params['title'] = this.title;
             params['text'] = this.review;
+            params['images'] = this.imgArray;
             const apiUrl = `/jsonSubmitReviews`;
             const jsonSubmitOutput = await this.performPostHttpRequest(apiUrl, params);
             console.log(jsonSubmitOutput);
@@ -118,11 +119,39 @@ export default {
                 this.imgArray.push(await this.toBase64(files[i]));
             }
         },
-        toBase64(file)
+        async toBase64(file)
         {
+            const image = new Image();
+            const canvas = document.createElement('canvas');
+            const max_size = 200;
+            image.src = URL.createObjectURL(file);
+            await image.decode();
+            let width = image.width;
+            let height = image.height;
+            if (width > height) 
+            {
+                if (width > max_size) 
+                {
+                    height *= max_size / width;
+                    width = max_size;
+                }
+            } 
+            else 
+            {
+                if (height > max_size) 
+                {
+                    width *= max_size / height;
+                    height = max_size;
+                }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext('2d').drawImage(image, 0, 0, width, height);
+            const resizedImage = await new Promise(rs => canvas.toBlob(rs, 'image/jpeg', 1));
+
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
-                reader.readAsDataURL(file);
+                reader.readAsDataURL(resizedImage);
                 reader.onload = () => resolve(reader.result);
                 reader.onerror = error => reject(error);
             });
