@@ -231,7 +231,7 @@ async function replyto_jsonSubmitReviews(req, res)
         }
         console.log(jsonFetchIDOutput);
         
-        const reviewid = jsonFetchIDOutput.resultset[0];
+        const reviewid = jsonFetchIDOutput.resultset[0].reviewid;
 
         imagesArray = req.body.images;
         for (let i  = 0; i < imagesArray.length; i++)
