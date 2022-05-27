@@ -147,7 +147,7 @@ export default {
             canvas.width = width;
             canvas.height = height;
             canvas.getContext('2d').drawImage(image, 0, 0, width, height);
-            const resizedImage = await new Promise(rs => canvas.toBlob(rs, 'image/jpeg', 1));
+            const resizedImage = await new Promise(rs => canvas.toBlob(rs, 'image/png', 1));
 
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
