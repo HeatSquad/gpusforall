@@ -29,9 +29,12 @@
             <input class="btn btn-outline-dark" type="button" id="imgUploadBtn" value="Upload Image" onclick="document.getElementById('imgUpload').click();" />
             <input class="form-control-sm" type="file" id="imgUpload" accept="image/*" style="display:none" @change="fileImages()" multiple>
         </div>
-        <b-row class="mb-3">
+        <b-row class="mb-3" cols="12">
             <div v-for="item in imgArray" :key="item">
-                <img :src="item" width="100" height="100" style="padding-left:10px"> 
+                <b-col cols="1">
+                    <img :src="item" width="100" height="100" style="padding-left:1px" :id="item">
+                    <b-button style="text-align:center;" size="sm" variant="danger" @click="removeImage(item)">Remove</b-button>
+                </b-col>
             </div>
         </b-row>
         <br>
@@ -156,6 +159,11 @@ export default {
                 reader.onerror = error => reject(error);
             });
         },
+        removeImage(item)
+        {
+            let index = this.imgArray.indexOf(item);
+            this.imgArray.splice(index, 1);
+        }
     },
     computed : 
     {
