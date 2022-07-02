@@ -22,13 +22,10 @@ async function replyto_jsonFetchReviewsByProductID(req, res)
 
             ri.imageid,
             ri.image,
-            ri.created AS image_created,
-            ri.created_by AS image_created_by,
-            ri.modified AS image_modified,
-            ri.modified_by AS image_modified_by,
-
-            u.first_name,
-            u.last_name
+            ri.created,
+            ri.created_by,
+            ri.modified,
+            ri.modified_by
         FROM reviews r
             LEFT JOIN review_images ri ON ri.reviewid = r.reviewid
             LEFT JOIN users u ON u.userid = r.userid

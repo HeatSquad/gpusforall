@@ -13,7 +13,7 @@ async function initializePool()
         host            : 'localhost',
         port            :  3306,
         user            : 'root',
-        password        : '^harlaneugenealexthuc4$',
+        password        : 'password',
         database        : 'sys',
         waitForConnections: true,
         connectionLimit : 100,
