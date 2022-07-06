@@ -48,11 +48,9 @@ export default
             if (!httpResponse['data']) return gpusGeneral.replywith_jsonErrorMessage(`ERROR: http response data does not exist`);
 
             const statusCode = httpResponse['status'];
-            const statusMessage = httpResponse['statusText'];
             const responseBody = httpResponse['data'];
+            // TODO: Status Code error handling
             if (statusCode < 200 || statusCode > 299) return gpusGeneral.replywith_jsonErrorMessage(`ERROR: The http request failed`);
-
-            responseBody['message'] = statusMessage;
             return responseBody;
         },
         performGetHttpRequest: async function(apiEndpoint)
