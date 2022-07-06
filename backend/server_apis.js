@@ -51,7 +51,7 @@ function processResponse(req, res, next)
   const message = res.pendingResponse['message'];
   const resultset = res.pendingResponse['resultset'];
   if (status === undefined || message === undefined || resultset === undefined) return next(new Error('Pending response is missing expected properties'));
-
+  console.log(message);
   res.json(res.pendingResponse);
 }
 function requestErrorHandler(err, req, res, next)

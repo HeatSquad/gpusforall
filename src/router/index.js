@@ -35,7 +35,15 @@ const routes = [
     name: 'Product Description',
     component: () => import(/* webpackChunkName: "about" */ '../views/ProductDescription.vue')
   },
+<<<<<<< HEAD
 >>>>>>> 68c0c22a663d43a47506868515063dd323fb6155
+=======
+  {
+    path: '/signup',
+    name: 'SignUp',
+    component: () => import(/* webpackChunkName: "about" */ '../views/SignUp.vue')
+  },
+>>>>>>> f535827bb40e5541af033bbf37d1a622e59f1385
 ]
 
 const router = new VueRouter({

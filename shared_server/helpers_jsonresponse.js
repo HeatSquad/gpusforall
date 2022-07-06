@@ -1,4 +1,4 @@
-function replywith_jsonInvalidParameters(message)
+function buildJsonInvalidParameters(message)
 {
     const jsonResult = {};
     jsonResult['status'] = 'ERROR';
@@ -7,7 +7,7 @@ function replywith_jsonInvalidParameters(message)
     return jsonResult;
 }
 
-function replywith_jsonErrorMessage(message)
+function buildJsonErrorMessage(message)
 {
     const jsonResult = {};
     jsonResult['status'] = 'ERROR';
@@ -16,7 +16,7 @@ function replywith_jsonErrorMessage(message)
     return jsonResult;
 }
 
-function replywith_jsonSuccessMessage(message, resultset = [])
+function buildJsonSuccessMessage(message, resultset = [])
 {
     const jsonResult = {};
     jsonResult['status'] = 'SUCCESS';
@@ -27,7 +27,7 @@ function replywith_jsonSuccessMessage(message, resultset = [])
 
 module.exports =
 {
-    replywith_jsonInvalidParameters: replywith_jsonInvalidParameters,
-    replywith_jsonErrorMessage: replywith_jsonErrorMessage,
-    replywith_jsonSuccessMessage: replywith_jsonSuccessMessage,
+    buildJsonInvalidParameters: buildJsonInvalidParameters,
+    buildJsonErrorMessage: buildJsonErrorMessage,
+    buildJsonSuccessMessage: buildJsonSuccessMessage,
 };

@@ -26,7 +26,6 @@ async function replyto_jsonFetchReviewsByProductID(req, res)
             ri.created_by AS image_created_by,
             ri.modified AS image_modified,
             ri.modified_by AS image_modified_by,
-
             u.first_name,
             u.last_name
         FROM reviews r

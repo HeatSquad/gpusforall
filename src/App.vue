@@ -21,7 +21,7 @@
             <b-button size="sm" class="my-2 my-sm-0" type="submit">Search</b-button>
           </b-nav-form>
         </b-navbar-nav>
-        <b-navbar-nav class="align-items-center">
+        <b-navbar-nav v-if="loggedIn" class="align-items-center">
           <b-icon icon="person-circle" variant="white"></b-icon>
             <b-nav-item-dropdown text="Thuc Nguyen" variant="danger" right>
               <b-dropdown-item to="/user">Account</b-dropdown-item>
@@ -30,7 +30,12 @@
               <b-dropdown-item to="/">Orders</b-dropdown-item>
               <b-dropdown-item to="/">Transactions</b-dropdown-item>
               <b-dropdown-item to="/">Settings</b-dropdown-item>
+              <b-dropdown-item @click="performLogOut">Log Out</b-dropdown-item>
             </b-nav-item-dropdown>
+        </b-navbar-nav>
+        <b-navbar-nav v-else class="ml-5 mr-5">
+          <b-nav-item class="mr-3">Log In</b-nav-item>
+          <b-button to="/signup">Sign Up</b-button>
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
@@ -65,6 +70,22 @@
     </div>
   </div>
 </template>
+
+<script>
+export default {
+  data: function() {
+    return {
+      loggedIn: true,
+    }
+  },
+  methods:
+  {
+    performLogOut() {
+      this.loggedIn = false;
+    }
+  }
+}
+</script>
 
 <style scoped lang="scss">
 html,body {
