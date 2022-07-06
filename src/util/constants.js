@@ -1,6 +1,9 @@
 // export default listOfStates;
 
-export  {listOfStates};
+export {
+    listOfStates,
+    listOfNumericMonths
+};
 
 const listOfStates =
 [
@@ -54,4 +57,20 @@ const listOfStates =
     "WV",
     "WI",
     "WY",
+];
+
+const listOfNumericMonths =
+[
+    '01', 
+    '02', 
+    '03', 
+    '04', 
+    '05', 
+    '06' , 
+    '07', 
+    '08', 
+    '09', 
+    '10', 
+    '11', 
+    '12'
 ];
