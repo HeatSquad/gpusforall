@@ -58,8 +58,6 @@ function endAllPoolConnections()
 async function execMySql(sqlStmt, arrayBindParams, isWriting)
 {
     if (pool == null) await initializePool();
-
-    console.log(pool);  // TODO: Remove
     if (pool == null)
     {
         const jsonPoolError = {};
