@@ -6,10 +6,9 @@ module.exports = apiArray;
 
 async function replyto_jsonCreateNewUser(req, res)
 {
-    if (req.body.username === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Missing required parameter: username`, req, res);
-    if (req.body.email === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Missing required parameter: email`, req, res);
     if (req.body.first_name === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Missing required parameter: first_name`, req, res);
     if (req.body.last_name === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Missing required parameter: last_name`, req, res);
+    if (req.body.email === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Missing required parameter: email`, req, res);
     if (req.body.dob === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Missing required parameter: dob`, req, res);
     if (req.body.password === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Missing required parameter: password`, req, res);
 
@@ -22,7 +21,7 @@ async function replyto_jsonCreateNewUser(req, res)
     arrayBindParams.push(req.body.password);
     arrayBindParams.push("system");
     const sqlStmtCreateUser = `
-    INSERT INTO sys.users (userid, email, first_name, last_name, dob, password, modified_by)
+    INSERT INTO sys.users (userid, status, email, first_name, last_name, dob, password, modified_by)
                    VALUES (?, ?, ?, ?, ?, ?, ?)`;
     const jsonCreateUserPromise = mySqlConnection.execMySql(sqlStmtCreateUser, arrayBindParams);
     const jsonCreateUserOutput = await jsonCreateUserPromise;
@@ -94,4 +93,3 @@ apiArray.push(
         }
     }
 );
-
