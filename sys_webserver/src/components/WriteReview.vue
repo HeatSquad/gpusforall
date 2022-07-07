@@ -75,7 +75,6 @@ export default {
     },
     async mounted() 
     {  
-        this.reviewsArray = await this.fetchReviews();
     },
     methods :
     {
