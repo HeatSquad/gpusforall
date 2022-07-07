@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
+// const NotFound = { template: "<div>not found</div>" };
 
 Vue.use(VueRouter)
 
@@ -28,22 +29,17 @@ const routes = [
     name: 'Wishlist',
     component: () => import(/* webpackChunkName: "about" */ '../views/Wishlist.vue')
   },
-<<<<<<< HEAD
-=======
   {
     path: '/product-description',
     name: 'Product Description',
     component: () => import(/* webpackChunkName: "about" */ '../views/ProductDescription.vue')
   },
-<<<<<<< HEAD
->>>>>>> 68c0c22a663d43a47506868515063dd323fb6155
-=======
   {
     path: '/signup',
     name: 'SignUp',
     component: () => import(/* webpackChunkName: "about" */ '../views/SignUp.vue')
   },
->>>>>>> f535827bb40e5541af033bbf37d1a622e59f1385
+  // { path: "*", component: NotFound }
 ]
 
 const router = new VueRouter({

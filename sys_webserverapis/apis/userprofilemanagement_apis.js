@@ -1,4 +1,4 @@
-const mySqlConnection = require('../../shared/wrappers_mysql.js');
+const mySqlConnection = require('../../shared_server/wrappers_mysql.js');
 const gpusGeneral = require('../../shared_server/general.js');
 
 const apiArray = [];

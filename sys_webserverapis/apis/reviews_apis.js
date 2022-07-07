@@ -1,5 +1,5 @@
-const mySqlConnection = require('../../shared/wrappers_mysql.js');
-const gpusGeneral = require('../../shared/general.js');
+const mySqlConnection = require('../../shared_server/wrappers_mysql.js');
+const gpusGeneral = require('../../shared_server/general.js');
 
 const apiArray = []
 module.exports = apiArray;
@@ -116,6 +116,66 @@ apiArray.push(
         {
             public: true,
             description: 'fetches the product reviews and images for the user id',
+            group: 'reviews'
+        }
+    }
+);
+
+async function replyto_jsonFetchReviewsByUserAndProduct(req, res)
+{
+    const arrayBindParams = [];
+    arrayBindParams.push(req.body.productid);
+    arrayBindParams.push(req.body.userid);
+    const sqlStmtFetchReviews = `
+        SELECT
+            r.reviewid, 
+            r.productid,
+            r.userid,
+            r.title,
+            r.text,
+            r.created AS review_created,
+            r.created_by AS review_created_by,
+            r.modified AS review_modified,
+            r.modified_by AS review_modified_by,
+
+            ri.imageid,
+            ri.image,
+            ri.created AS image_created,
+            ri.created_by AS image_created_by,
+            ri.modified AS image_modified,
+            ri.modified_by AS image_modified_by,
+            u.first_name,
+            u.last_name
+        FROM reviews r
+            LEFT JOIN review_images ri ON ri.reviewid = r.reviewid
+            LEFT JOIN users u ON u.userid = r.userid
+        WHERE
+            r.deleted <> 'Y'
+            AND (ri.deleted <> 'Y' OR ri.deleted IS NULL)
+            AND r.productid = ?
+            AND u.userid = ?
+            AND u.deleted <> 'Y'
+    `;
+    const jsonFetchReviewsPromise = mySqlConnection.execMySql(sqlStmtFetchReviews, arrayBindParams);
+    const jsonFetchReviewsOutput = await jsonFetchReviewsPromise;
+    if (jsonFetchReviewsOutput['status'] != 'SUCCESS')
+    {
+        console.log(jsonFetchReviewsOutput);
+        return gpusGeneral.replywith_jsonErrorMessage(`Failed to fetch review for product with id: ${req.body.productid} and userid: ${req.body.userid}`, req, res)
+    }
+    console.log(jsonFetchReviewsOutput);
+    return jsonFetchReviewsOutput;
+}
+
+apiArray.push(
+    {
+        method: 'GET',
+        handler: replyto_jsonFetchReviewsByUserAndProduct,
+        path: 'jsonFetchReviewsByUserAndProduct',
+        options:
+        {
+            public: true,
+            description: 'fetches the product reviews and images if available based off product id and user id',
             group: 'reviews'
         }
     }
