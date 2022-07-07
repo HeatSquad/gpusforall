@@ -42,7 +42,7 @@ async function replyto_jsonFetchReviewsByProductID(req, res)
     if (jsonFetchReviewsOutput['status'] != 'SUCCESS')
     {
         console.log(jsonFetchReviewsOutput);
-        return gpusGeneral.replywith_jsonErrorMessage(`Failed to fetch product with id: ${req.params.productid}`, req, res)
+        return gpusGeneral.buildJsonErrorMessage(`Failed to fetch product with id: ${req.params.productid}`, req, res)
     }
     console.log(jsonFetchReviewsOutput);
     return jsonFetchReviewsOutput;
@@ -101,7 +101,7 @@ async function replyto_jsonFetchReviewsByUserID(req, res)
     if (jsonFetchReviewsOutput['status'] != 'SUCCESS')
     {
         console.log(jsonFetchReviewsOutput);
-        return gpusGeneral.replywith_jsonErrorMessage(`Failed to fetch user with id: ${req.params.userid}`, req, res)
+        return gpusGeneral.buildJsonErrorMessage(`Failed to fetch user with id: ${req.params.userid}`, req, res)
     }
     console.log(jsonFetchReviewsOutput);
     return jsonFetchReviewsOutput;
@@ -123,9 +123,13 @@ apiArray.push(
 
 async function replyto_jsonFetchReviewsByUserAndProduct(req, res)
 {
+    if (req.params.productid === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: productid', req, res);
+    if (req.params.userid === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: userid', req, res);
+    
     const arrayBindParams = [];
-    arrayBindParams.push(req.body.productid);
-    arrayBindParams.push(req.body.userid);
+    arrayBindParams.push(req.params.productid);
+    arrayBindParams.push(req.params.userid);
+
     const sqlStmtFetchReviews = `
         SELECT
             r.reviewid, 
@@ -161,7 +165,7 @@ async function replyto_jsonFetchReviewsByUserAndProduct(req, res)
     if (jsonFetchReviewsOutput['status'] != 'SUCCESS')
     {
         console.log(jsonFetchReviewsOutput);
-        return gpusGeneral.replywith_jsonErrorMessage(`Failed to fetch review for product with id: ${req.body.productid} and userid: ${req.body.userid}`, req, res)
+        return gpusGeneral.buildJsonErrorMessage(`Failed to fetch review for product with id: ${req.body.productid} and userid: ${req.body.userid}`, req, res)
     }
     console.log(jsonFetchReviewsOutput);
     return jsonFetchReviewsOutput;
@@ -171,7 +175,7 @@ apiArray.push(
     {
         method: 'GET',
         handler: replyto_jsonFetchReviewsByUserAndProduct,
-        path: 'jsonFetchReviewsByUserAndProduct',
+        path: 'jsonFetchReviewsByUserAndProduct/:productid/:userid',
         options:
         {
             public: true,
@@ -183,8 +187,8 @@ apiArray.push(
 
 async function replyto_jsonDeleteReviews(req, res)
 {
-    if (req.body.productid === undefined) return gpusGeneral.replywith_jsonInvalidParameters('Missing required parameter: productid', req, res);
-    if (req.body.userid === undefined) return gpusGeneral.replywith_jsonInvalidParameters('Missing required parameter: userid', req, res);
+    if (req.body.productid === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: productid', req, res);
+    if (req.body.userid === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: userid', req, res);
 
     const arrayBindParams = [];
     arrayBindParams.push(req.body.userid);
@@ -202,7 +206,7 @@ async function replyto_jsonDeleteReviews(req, res)
     if (jsonDeleteReviewsOutput['status'] != 'SUCCESS')
     {
         console.log(jsonDeleteReviewsOutput);
-        return gpusGeneral.replywith_jsonErrorMessage(`Failed to update review for product with id: ${req.params.productid}`, req, res)
+        return gpusGeneral.buildJsonErrorMessage(`Failed to update review for product with id: ${req.params.productid}`, req, res)
     }
     console.log(jsonDeleteReviewsOutput);
 
@@ -219,7 +223,7 @@ async function replyto_jsonDeleteReviews(req, res)
     if (jsonDeleteReviewsImgsOutput['status'] != 'SUCCESS')
     {
         console.log(jsonDeleteReviewsImgsOutput);
-        return gpusGeneral.replywith_jsonErrorMessage(`Failed to update pictures for product with id: ${req.params.productid}`, req, res)
+        return gpusGeneral.buildJsonErrorMessage(`Failed to update pictures for product with id: ${req.params.productid}`, req, res)
     }
     console.log(jsonDeleteReviewsImgsOutput);
 
@@ -243,10 +247,10 @@ apiArray.push(
 
 async function replyto_jsonSubmitReviews(req, res)
 {
-    if (req.body.productid === undefined) return gpusGeneral.replywith_jsonInvalidParameters('Missing required parameter: productid', req, res);
-    if (req.body.userid === undefined) return gpusGeneral.replywith_jsonInvalidParameters('Missing required parameter: userid', req, res);
-    if (req.body.text === undefined) return gpusGeneral.replywith_jsonInvalidParameters('Missing required parameter: text', req, res);
-    if (req.body.title === undefined) return gpusGeneral.replywith_jsonInvalidParameters('Missing required parameter: title', req, res);
+    if (req.body.productid === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: productid', req, res);
+    if (req.body.userid === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: userid', req, res);
+    if (req.body.text === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: text', req, res);
+    if (req.body.title === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: title', req, res);
 
     const arrayBindParams = [];
     arrayBindParams.push(req.body.productid);
@@ -265,7 +269,7 @@ async function replyto_jsonSubmitReviews(req, res)
     if (jsonSubmitReviewsOutput['status'] != 'SUCCESS')
     {
         console.log(jsonSubmitReviewsOutput);
-        return gpusGeneral.replywith_jsonErrorMessage(`Failed to insert review for product with id: ${req.params.productid}`, req, res)
+        return gpusGeneral.buildJsonErrorMessage(`Failed to insert review for product with id: ${req.params.productid}`, req, res)
     }
     console.log(jsonSubmitReviewsOutput);
 
@@ -286,7 +290,7 @@ async function replyto_jsonSubmitReviews(req, res)
         if (jsonFetchIDOutput['status'] != 'SUCCESS')
         {
             console.log(jsonFetchIDOutput);
-            return gpusGeneral.replywith_jsonErrorMessage(`Failed to get reviewid for product with id: ${req.params.productid} and user ${req.params.userid}`, req, res)
+            return gpusGeneral.buildJsonErrorMessage(`Failed to get reviewid for product with id: ${req.params.productid} and user ${req.params.userid}`, req, res)
         }
         console.log(jsonFetchIDOutput);
         
@@ -312,7 +316,7 @@ async function replyto_jsonSubmitReviews(req, res)
             if (jsonSubmitImgOutput['status'] != 'SUCCESS')
             {
                 console.log(jsonSubmitImgOutput);
-                return gpusGeneral.replywith_jsonErrorMessage(`Failed to insert images for product with id: ${req.params.productid}`, req, res)
+                return gpusGeneral.buildJsonErrorMessage(`Failed to insert images for product with id: ${req.params.productid}`, req, res)
             }
             console.log(jsonSubmitImgOutput);
         }
@@ -342,10 +346,10 @@ apiArray.push(
 
 async function replyto_jsonEditReviews(req, res)
 {
-    if (req.body.reviewid === undefined) return gpusGeneral.replywith_jsonInvalidParameters('Missing required parameter: reviewid', req, res);
-    if (req.body.productid === undefined) return gpusGeneral.replywith_jsonInvalidParameters('Missing required parameter: productid', req, res);
-    if (req.body.userid === undefined) return gpusGeneral.replywith_jsonInvalidParameters('Missing required parameter: userid', req, res);
-    if (req.body.text === undefined) return gpusGeneral.replywith_jsonInvalidParameters('Missing required parameter: text', req, res);
+    if (req.body.reviewid === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: reviewid', req, res);
+    if (req.body.productid === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: productid', req, res);
+    if (req.body.userid === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: userid', req, res);
+    if (req.body.text === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: text', req, res);
 
     const arrayBindParams = [];
     arrayBindParams.push(req.body.title);
@@ -368,7 +372,7 @@ async function replyto_jsonEditReviews(req, res)
     if (jsonEditReviewsOutput['status'] != 'SUCCESS')
     {
         console.log(jsonEditReviewsOutput);
-        return gpusGeneral.replywith_jsonErrorMessage(`Failed to edit review for product with id: ${req.params.productid} and user ${req.params.userid}`, req, res)
+        return gpusGeneral.buildJsonErrorMessage(`Failed to edit review for product with id: ${req.params.productid} and user ${req.params.userid}`, req, res)
     }
     console.log(jsonEditReviewsOutput);
 
@@ -412,7 +416,7 @@ async function replyto_jsonEditReviews(req, res)
             if (jsonSubmitImgOutput['status'] != 'SUCCESS')
             {
                 console.log(jsonSubmitImgOutput);
-                return gpusGeneral.replywith_jsonErrorMessage(`Failed to insert images for product with id: ${req.params.productid}`, req, res)
+                return gpusGeneral.buildJsonErrorMessage(`Failed to insert images for product with id: ${req.params.productid}`, req, res)
             }
             console.log(jsonSubmitImgOutput);
         }

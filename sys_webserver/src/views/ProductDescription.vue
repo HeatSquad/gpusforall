@@ -9,17 +9,24 @@
             :userid="userid"
         >
         </write-review>
+        <user-review
+            :productid="productid"
+            :userid="userid"
+        >
+        </user-review>
     </div>
 </template>
 
 <script>
 import ReviewDisplay from '../components/ReviewDisplay.vue';
 import WriteReview from '../components/WriteReview.vue';
+import UserReview from '../components/UserReview.vue';
 
 export default {
     components : {
         ReviewDisplay,
         WriteReview,
+        UserReview,
     },
     data() {
         return {
