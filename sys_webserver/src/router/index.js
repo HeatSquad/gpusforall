@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
+// const NotFound = { template: "<div>not found</div>" };
 
 Vue.use(VueRouter)
 
@@ -38,6 +39,7 @@ const routes = [
     name: 'SignUp',
     component: () => import(/* webpackChunkName: "about" */ '../views/SignUp.vue')
   },
+  // { path: "*", component: NotFound }
 ]
 
 const router = new VueRouter({

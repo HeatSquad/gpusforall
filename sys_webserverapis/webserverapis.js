@@ -12,6 +12,7 @@ const helmet = require('helmet');
 const app = express();
 const port = 3000;
 const whitelistedDomains = process.env.WHITELISTED_DOMAINS.split(' ');
+const pathToApis = path.resolve(__dirname, './apis');
 const corsOption = 
 {
   origin: function(origin, callback)
@@ -69,7 +70,7 @@ function requestErrorHandler(err, req, res, next)
 app.use(logger);
 
 // Go through all files under apis and serve the endpoints
-const fileArray = fileSystem.readdirSync(process.env.PATH_APIS).map(file => path.join(process.env.PATH_APIS, file));
+const fileArray = fileSystem.readdirSync(pathToApis).map(file => path.join(pathToApis, file));
 const apiArray = [].concat.apply([],fileArray.map(filePath => {return require(filePath)}));
 // ********************************************************
 // TODO: Remove after everything's done
