@@ -8,6 +8,7 @@ async function replyto_jsonFetchReviewsByProductID(req, res)
 {
     const arrayBindParams = [];
     arrayBindParams.push(req.params.productid);
+    arrayBindParams.push(req.params.userid);
     const sqlStmtFetchReviews = `
         SELECT
             r.reviewid, 
@@ -36,6 +37,7 @@ async function replyto_jsonFetchReviewsByProductID(req, res)
             AND (ri.deleted <> 'Y' OR ri.deleted IS NULL)
             AND r.productid = ?
             AND u.deleted <> 'Y'
+            AND u.userid <> ?
     `;
     const jsonFetchReviewsPromise = mySqlConnection.execMySql(sqlStmtFetchReviews, arrayBindParams);
     const jsonFetchReviewsOutput = await jsonFetchReviewsPromise;
@@ -52,7 +54,7 @@ apiArray.push(
     {
         method: 'GET',
         handler: replyto_jsonFetchReviewsByProductID,
-        path: 'jsonFetchReviewsByProductID/:productid',
+        path: 'jsonFetchReviewsByProductID/:productid/:userid',
         options:
         {
             public: true,

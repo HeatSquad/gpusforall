@@ -41,6 +41,7 @@ export default {
     props :
     {
         productid : String,
+        userid : String,
     },
     async mounted() 
     {  
@@ -52,7 +53,7 @@ export default {
         async fetchReviews() 
         {
             console.log(`Fetching reviews for ${this.productid}`);
-            const apiUrl = `/jsonFetchReviewsByProductID/${this.productid}`;
+            const apiUrl = `/jsonFetchReviewsByProductID/${this.productid}/${this.userid}`;
             const jsonFetchReviewsOutput = await this.performGetHttpRequest(apiUrl);
             console.log(jsonFetchReviewsOutput);
             if (jsonFetchReviewsOutput['status'] != 'SUCCESS') return [];
