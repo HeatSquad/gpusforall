@@ -1,5 +1,6 @@
 <template>
     <b-container fluid>
+        <h3>Existing Review</h3>
         <b-card>
             <b-row class="justify-content-between">
                 <p><b>{{ review.first_name }} {{ review.last_name }}</b></p> 
@@ -33,7 +34,7 @@ export default {
         this.review = await this.fetchReview();
         if(this.review.length === 0)
         {
-            console.log("TODO: EMIT TO SHOW WRITE REVIEW");
+            this.$emit('show-write-review');
         }
         else
         {
