@@ -246,7 +246,6 @@ apiArray.push(
     }
 );
 
-
 async function replyto_jsonSubmitReviews(req, res)
 {
     if (req.body.productid === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: productid', req, res);
@@ -440,6 +439,61 @@ apiArray.push(
         {
             public: true,
             description: 'edit reviews and images by productid',
+            group: 'reviews'
+        }
+    }
+);
+
+async function replyto_jsonDeleteReviewsByReviewID(req, res)
+{
+    if (req.body.reviewid === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: reviewid', req, res);
+
+    const arrayBindParams = [];
+    arrayBindParams.push(req.body.reviewid);
+    const sqlStmtDeleteReviews = `
+        UPDATE reviews
+        SET deleted = 'Y'
+        WHERE
+            deleted <> 'Y'
+            reviewid = ?
+    `;
+    const jsonDeleteReviewsPromise = mySqlConnection.execMySql(sqlStmtDeleteReviews, arrayBindParams);
+    const jsonDeleteReviewsOutput = await jsonDeleteReviewsPromise;
+    if (jsonDeleteReviewsOutput['status'] != 'SUCCESS')
+    {
+        console.log(jsonDeleteReviewsOutput);
+        return gpusGeneral.buildJsonErrorMessage(`Failed to delete review for review with id: ${req.body.reviewid}`, req, res)
+    }
+    console.log(jsonDeleteReviewsOutput);
+
+    const sqlStmtDeleteReviewImgs = `
+        UPDATE review_images
+        SET deleted = 'Y'
+        WHERE
+            deleted <> 'Y'
+            reviewid = ?
+    `;
+    const jsonDeleteReviewImgsPromise = mySqlConnection.execMySql(sqlStmtDeleteReviewImgs, arrayBindParams);
+    const jsonDeleteReviewsImgsOutput = await jsonDeleteReviewImgsPromise;
+    if (jsonDeleteReviewsImgsOutput['status'] != 'SUCCESS')
+    {
+        console.log(jsonDeleteReviewsImgsOutput);
+        return gpusGeneral.buildJsonErrorMessage(`Failed to delete pictures for review with id: ${req.body.reviewid}`, req, res)
+    }
+    console.log(jsonDeleteReviewsImgsOutput);
+
+    return jsonDeleteReviewImgsPromise;
+}
+
+apiArray.push(
+    {
+        method: 'PUT',
+        handler: replyto_jsonDeleteReviewsByReviewID,
+        path: 'jsonDeleteReviewsByReviewID',
+        options:
+        {
+            public: true,
+            description: 'deletes the review and images by reviewid',
             group: 'reviews'
         }
     }
