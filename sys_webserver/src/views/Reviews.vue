@@ -15,7 +15,7 @@
             </b-row>
             <b-row class="float-right">
                 <b-button variant="success" size="sm">Edit</b-button>
-                <b-button variant="danger" size="sm">Delete</b-button>
+                <b-button variant="danger" size="sm" @click="confirmDelete(item.reviewid)">Delete</b-button>
             </b-row>
         </b-card>
         <b-row class="justify-content-center">
@@ -31,6 +31,25 @@
             size="sm"
             ></b-pagination>
         </b-row>
+        <b-modal ref="deleteModal" 
+                title="Delete Review?"
+                okTitle="Yes"
+                cancelTitle="No"
+                cancel-variant="danger"
+                ok-variant="success"
+                id="testing"
+                hide-header-close
+                @ok="deleteReview()"
+                @cancel="cancelDelete()">
+            Are you sure you want to delete this review?
+        </b-modal>
+        <b-modal
+            ref="deletedModal"
+            title="Success!"
+            ok-only
+        >
+        Review has been successfully deleted!
+        </b-modal>
     </b-container>
 </template>
 
@@ -42,6 +61,7 @@ export default {
             reviewsArray: [],
             currentPage : 1,
             perPage : 5,
+            selectedReview: '',
         }
     },
     async mounted() 
@@ -96,6 +116,27 @@ export default {
 
             return Object.values(reviewObject);
         },
+        confirmDelete(reviewid)
+        {
+            this.$refs.deleteModal.show();
+            this.selectedReview = reviewid;
+        },
+        async deleteReview()
+        {
+            console.log(`Deleting user reviews for ${this.selectedReview}`);
+            const params = {};
+            params['reviewid'] = this.selectedReview;
+            const apiUrl = `/jsonDeleteReviewsByReviewID`;
+            const jsonFetchReviewsOutput = await this.performPutHttpRequest(apiUrl, params);
+            console.log(jsonFetchReviewsOutput);
+            if (jsonFetchReviewsOutput['status'] != 'SUCCESS') console.log("Failed to delete review");
+            this.reviewsArray = await this.fetchUsersReviews();
+            this.$refs.deletedModal.show();
+        },
+        cancelDelete()
+        {
+            this.selectedReview = '';
+        }
     },
     computed : 
     {
