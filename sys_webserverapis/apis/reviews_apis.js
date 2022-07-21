@@ -455,7 +455,7 @@ async function replyto_jsonDeleteReviewsByReviewID(req, res)
         SET deleted = 'Y'
         WHERE
             deleted <> 'Y'
-            reviewid = ?
+            AND reviewid = ?
     `;
     const jsonDeleteReviewsPromise = mySqlConnection.execMySql(sqlStmtDeleteReviews, arrayBindParams);
     const jsonDeleteReviewsOutput = await jsonDeleteReviewsPromise;
@@ -471,7 +471,7 @@ async function replyto_jsonDeleteReviewsByReviewID(req, res)
         SET deleted = 'Y'
         WHERE
             deleted <> 'Y'
-            reviewid = ?
+            AND reviewid = ?
     `;
     const jsonDeleteReviewImgsPromise = mySqlConnection.execMySql(sqlStmtDeleteReviewImgs, arrayBindParams);
     const jsonDeleteReviewsImgsOutput = await jsonDeleteReviewImgsPromise;
