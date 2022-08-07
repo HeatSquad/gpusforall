@@ -1,0 +1,74 @@
+{
+    "apps":
+    [
+        {
+            "name": "sys_procmanager",
+            "script": "./../sys_procmanager/procmanager.js",
+            "instances": 1,
+            "exec_mode": "cluster",
+            "wait_ready": true,
+            "kill_timeout": 7000,
+            "max_memory_restart": "1G",
+            "env":
+            {
+                "PORT": 3050,
+                "SERVICE_PATH": "proc"
+            }
+        },
+        {
+            "name": "sys_webserver",
+            "script": "./../sys_webserver/webserver.js",
+            "instances": 1,
+            "exec_mode": "cluster",
+            "wait_ready": true,
+            "kill_timeout": 7000,
+            "max_memory_restart": "1G",
+            "env":
+            {
+                "PORT": 8080
+            }
+        },
+        {
+            "name": "sys_webserverapis",
+            "script": "./../sys_webserverapis/webserverapis.js",
+            "instances": 2,
+            "exec_mode": "cluster",
+            "wait_ready": true,
+            "kill_timeout": 7000,
+            "max_memory_restart": "1G",
+            "env":
+            {
+                "PORT": 3000,
+                "SERVICE_PATH": "services"
+            }
+        },
+        {
+            "name": "sys_auth",
+            "script": "./../sys_auth/auth.js",
+            "instances": 1,
+            "exec_mode": "cluster",
+            "wait_ready": true,
+            "kill_timeout": 7000,
+            "max_memory_restart": "1G",
+            "env":
+            {
+                "PORT": 3010,
+                "SERVICE_PATH": "auth"
+            }
+        },
+        {
+            "name": "sys_bffgatewayweb",
+            "script": "./../sys_bffgatewayweb/bffgatewayweb.js",
+            "instances": 1,
+            "exec_mode": "cluster",
+            "wait_ready": true,
+            "kill_timeout": 7000,
+            "max_memory_restart": "1G",
+            "env":
+            {
+                "PORT": 3040,
+                "SERVICE_PATH": "gateway"
+            }
+        }
+    ]
+}
