@@ -8,6 +8,7 @@ async function replyto_jsonFetchReviewsByProductID(req, res)
 {
     const arrayBindParams = [];
     arrayBindParams.push(req.params.productid);
+    arrayBindParams.push(req.params.userid);
     const sqlStmtFetchReviews = `
         SELECT
             r.reviewid, 
@@ -36,6 +37,7 @@ async function replyto_jsonFetchReviewsByProductID(req, res)
             AND (ri.deleted <> 'Y' OR ri.deleted IS NULL)
             AND r.productid = ?
             AND u.deleted <> 'Y'
+            AND u.userid <> ?
     `;
     const jsonFetchReviewsPromise = mySqlConnection.execMySql(sqlStmtFetchReviews, arrayBindParams);
     const jsonFetchReviewsOutput = await jsonFetchReviewsPromise;
@@ -52,7 +54,7 @@ apiArray.push(
     {
         method: 'GET',
         handler: replyto_jsonFetchReviewsByProductID,
-        path: 'jsonFetchReviewsByProductID/:productid',
+        path: 'jsonFetchReviewsByProductID/:productid/:userid',
         options:
         {
             public: true,
@@ -243,7 +245,6 @@ apiArray.push(
         }
     }
 );
-
 
 async function replyto_jsonSubmitReviews(req, res)
 {
@@ -438,6 +439,61 @@ apiArray.push(
         {
             public: true,
             description: 'edit reviews and images by productid',
+            group: 'reviews'
+        }
+    }
+);
+
+async function replyto_jsonDeleteReviewsByReviewID(req, res)
+{
+    if (req.body.reviewid === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: reviewid', req, res);
+
+    const arrayBindParams = [];
+    arrayBindParams.push(req.body.reviewid);
+    const sqlStmtDeleteReviews = `
+        UPDATE reviews
+        SET deleted = 'Y'
+        WHERE
+            deleted <> 'Y'
+            AND reviewid = ?
+    `;
+    const jsonDeleteReviewsPromise = mySqlConnection.execMySql(sqlStmtDeleteReviews, arrayBindParams);
+    const jsonDeleteReviewsOutput = await jsonDeleteReviewsPromise;
+    if (jsonDeleteReviewsOutput['status'] != 'SUCCESS')
+    {
+        console.log(jsonDeleteReviewsOutput);
+        return gpusGeneral.buildJsonErrorMessage(`Failed to delete review for review with id: ${req.body.reviewid}`, req, res)
+    }
+    console.log(jsonDeleteReviewsOutput);
+
+    const sqlStmtDeleteReviewImgs = `
+        UPDATE review_images
+        SET deleted = 'Y'
+        WHERE
+            deleted <> 'Y'
+            AND reviewid = ?
+    `;
+    const jsonDeleteReviewImgsPromise = mySqlConnection.execMySql(sqlStmtDeleteReviewImgs, arrayBindParams);
+    const jsonDeleteReviewsImgsOutput = await jsonDeleteReviewImgsPromise;
+    if (jsonDeleteReviewsImgsOutput['status'] != 'SUCCESS')
+    {
+        console.log(jsonDeleteReviewsImgsOutput);
+        return gpusGeneral.buildJsonErrorMessage(`Failed to delete pictures for review with id: ${req.body.reviewid}`, req, res)
+    }
+    console.log(jsonDeleteReviewsImgsOutput);
+
+    return jsonDeleteReviewImgsPromise;
+}
+
+apiArray.push(
+    {
+        method: 'PUT',
+        handler: replyto_jsonDeleteReviewsByReviewID,
+        path: 'jsonDeleteReviewsByReviewID',
+        options:
+        {
+            public: true,
+            description: 'deletes the review and images by reviewid',
             group: 'reviews'
         }
     }

@@ -2,16 +2,20 @@
     <div>
         <review-display
             :productid="productid"
+            :userid="userid"
         >
         </review-display>
         <write-review
+            v-if="noCurrentReview"
             :productid="productid"
             :userid="userid"
         >
         </write-review>
         <user-review
+            v-if="!noCurrentReview"
             :productid="productid"
             :userid="userid"
+            @show-write-review="showWriteReview"
         >
         </user-review>
     </div>
@@ -32,11 +36,19 @@ export default {
         return {
             productid : 'P-197',
             userid : 'USR00001',
+            noCurrentReview: false,
         }
     },
     created() 
     {
     },
+    methods:
+    {
+        showWriteReview()
+        {
+            this.noCurrentReview = true;
+        },
+    }
 }
 
 </script>

@@ -4,6 +4,7 @@
             <b-button class="mx-2 px-4" @click="navigateToOrders">Orders</b-button>
             <b-button class="mx-2 px-4">Transactions</b-button>
             <b-button class="mx-2 px-4" to="/wishlist">Wishlist</b-button>
+            <b-button class="mx-2 px-4" to="/reviews">Reviews</b-button>
         </b-row>
         <b-row class="justify-content-between">
             <b-col cols="8">
