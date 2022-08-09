@@ -3,7 +3,7 @@
     <!-- Menu -->
     <b-navbar toggleable="md" type="dark" variant="info" class="pr-3">
       <b-navbar-brand to="/" class="m-3">
-        <img src="/images/8bitgpu.jpeg"/> GPUs 4 All
+        <img src="./assets/images/8bitgpu.jpeg"/> GPUs 4 All
       </b-navbar-brand>
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
       <b-collapse id="nav-collapse" is-nav>

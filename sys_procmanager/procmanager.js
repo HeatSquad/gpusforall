@@ -21,7 +21,7 @@ const corsOption =
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH']
 };
-const { loadAppRouterProc, loadErrorLoadAppRouter, loadErrorResourceNotFound } = require('./../shared_server/general.js');
+const { loadAppRouterProc, loadErrorLoadAppRouter, loadStaticPathNotFoundRedirect } = require('./../shared_server/general.js');
 
 const app = express();
 app.use(cors(corsOption));                          // Resolves cross-origin resource sharing
@@ -32,15 +32,21 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));    // for parsin
 
 const pathToApis = path.join(__dirname, './apis');
 const pathToStatics = path.join(__dirname, './statics');
+const pathToProcManageDisplay = path.join(__dirname, './statics/procmanagedisplay.html');
 // TODO: Remove later =========================================================
 // console.log(process.env);
 console.log('Path to apis: ', pathToApis);
 console.log('Path to statics: ', pathToStatics);
+console.log('Path to procmanagedisplay: ', pathToProcManageDisplay);
 // ============================================================================
 
 loadAppRouterProc(router, pathToApis);                  // Loads API routes for current service
 loadErrorLoadAppRouter(router);                         // Loads error handlers
-loadErrorResourceNotFound(router);
+router.use(express.static(pathToStatics));              // Loads statics of current service
+router.get('/', (req, res, next) => {                   // Loads processmanagedisplay static file on specific route
+    res.sendFile(pathToProcManageDisplay);
+});
+loadStaticPathNotFoundRedirect(router, '/');    // Loads error handlers
 app.use(router);
 
 // Start the server on the specified port

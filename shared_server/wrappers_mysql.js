@@ -9,6 +9,9 @@ const mysql = require('mysql2');
 let pool = null;
 async function initializePool()
 {
+    console.log('**************************************************');
+    console.log('INITIALIZING MYSQL POOOOOOOOOOOOOOOOOOOOOOOOOOL');
+    console.log('**************************************************');
     pool = await mysql.createPool({
         host            : process.env.MYSQL_HOST,
         port            :  process.env.MYSQL_PORT,
