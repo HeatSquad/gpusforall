@@ -253,6 +253,31 @@ async function replyto_jsonSubmitReviews(req, res)
     if (req.body.text === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: text', req, res);
     if (req.body.title === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: title', req, res);
 
+    //Check to see if the user has a review already
+    const checkBindParams = [];
+    checkBindParams.push(req.body.productid);
+    checkBindParams.push(req.body.userid);
+
+    const sqlStmtCheckReview = `
+        SELECT reviewid
+          FROM reviews
+          WHERE productid = ?
+            AND userid = ?
+            AND deleted <> 'Y'
+    `;
+    const jsonCheckReviewsPromise = mySqlConnection.execMySql(sqlStmtCheckReview, checkBindParams);
+    const jsonCheckReviewsOutput = await jsonCheckReviewsPromise;
+    if (jsonCheckReviewsOutput['status'] != 'SUCCESS')
+    {
+        console.log(jsonCheckReviewsOutput);
+        return gpusGeneral.buildJsonErrorMessage(`Failed to check for review for product with id: ${req.params.productid}`, req, res)
+    }
+    if(jsonCheckReviewsOutput['resultset'].length > 0)
+    {
+        console.log(jsonCheckReviewsOutput);
+        return gpusGeneral.buildJsonErrorMessage(`This user already has a review for product with id: ${req.params.productid}`, req, res)
+    }
+
     const arrayBindParams = [];
     arrayBindParams.push(req.body.productid);
     arrayBindParams.push(req.body.userid);
