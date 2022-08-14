@@ -10,25 +10,8 @@
             <b-form-group id="inputGroupUserName" label="User Name" label-for="inputUserName">
                 <b-form-input id="inputUserName" v-model="userName" placeholder="Enter user name" maxLength="100" required></b-form-input>
             </b-form-group>
-            <b-form-group id="inputGroupFirstName" label="First Name" label-for="inputFirstName">
-                <b-form-input id="inputFirstName" v-model="firstName" placeholder="Enter first name" maxLength="100" required></b-form-input>
-            </b-form-group>
-            <b-form-group id="inputGroupLastName" label="Last Name" label-for="inputLastName">
-                <b-form-input id="inputLastName" v-model="lastName" placeholder="Enter last name" maxLength="100" required></b-form-input>
-            </b-form-group>
-            <b-form-group id="inputGroupDateOfBirth" label="Date of Birth" label-for="inputDateOfBirth">
-                <b-form-input id="inputDateOfBirth" v-model="dateOfBirth" type="date" required></b-form-input>
-            </b-form-group>
-            <b-form-group id="inputGroupEmail" label="Email" label-for="inputEmail">
-                <b-form-input id="inputEmail" v-model="email" type="email" placeholder="Enter email" maxLength="320"  required></b-form-input>
-                <template v-if="invalidEmailAddress"><span style="color: red">Invalid email</span></template>
-            </b-form-group>
             <b-form-group id="inputGroupPassword" label="Password" label-for="inputPassword">
                 <b-form-input id="inputPassword" v-model="password" type="password" maxLength="50" required></b-form-input>
-            </b-form-group>
-            <b-form-group id="inputGroupConfirmPassword" label="Confirm Password" label-for="inputConfirmPassword">
-                <b-form-input id="inputConfirmPassword" v-model="confirmPassword" type="password" maxLength="50" required></b-form-input>
-                <template v-if="passwordDoesNotMatch"><span style="color: red">Passwords do not match</span></template>
             </b-form-group>
           </b-col>
         </b-row>
@@ -38,11 +21,16 @@
             :disabled="userName == '' || firstName == '' || lastName == '' || dateOfBirth == '' || email == '' || password == '' || confirmPassword == '' || creatingUser"
             @click="performSignUp"
           >
-            Sign Up
+            Log In
           </b-button>
         </b-row>
         <b-row class="justify-content-center mt-2">
-          Already have an account?
+          <b-col>
+            Forgot user name?
+          </b-col>
+          <b-col>
+            Forgot password?
+          </b-col>
         </b-row>
       </b-card>
     </b-row>
