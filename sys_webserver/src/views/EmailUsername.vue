@@ -66,7 +66,7 @@ export default {
 
       const jsonSendActivationEmailParams = {};
       jsonSendActivationEmailParams['email'] = this.email;
-      const jsonSendActivationEmailApiUrl = '/jsonSendActivationEmail';
+      const jsonSendActivationEmailApiUrl = '/services/jsonSendActivationEmail';
       const jsonSendActivationEmailOutput = await this.performPostHttpRequest(jsonSendActivationEmailApiUrl, jsonSendActivationEmailParams);
       console.log(jsonSendActivationEmailOutput);
       if (jsonSendActivationEmailOutput['status'] != 'SUCCESS')

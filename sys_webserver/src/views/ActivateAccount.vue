@@ -72,7 +72,7 @@ export default {
       jsonActivateAccountParams['activationCode'] = this.activationCode;
       
       // Within the API, verify userName and email, then hash the activationCode using the salt 
-      const jsonActivateAccountApiUrl = '/jsonVerifyUser';
+      const jsonActivateAccountApiUrl = '/services/jsonVerifyUser';
       const jsonActivateAccountOutput = await this.performPostHttpRequest(jsonActivateAccountApiUrl, jsonActivateAccountParams);
       console.log(jsonActivateAccountOutput);
       if (jsonActivateAccountOutput['status'] != 'SUCCESS')

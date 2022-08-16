@@ -4,7 +4,7 @@
       {{ errorMessage  }}
     </b-alert>
     <b-row class="justify-content-center">
-      <b-card  v-if="!userAccountCreated" class="mt-5" style="width: 25%;">
+      <b-card  v-if="!userAccountCreated" class="mt-5">
         <b-row>
           <b-col>
             <b-form-group id="inputGroupUserName" label="User Name" label-for="inputUserName">
@@ -42,7 +42,7 @@
           </b-button>
         </b-row>
         <b-row class="justify-content-center mt-2">
-          Already have an account?
+          <b-link to="/login">Already have an account?</b-link>
         </b-row>
       </b-card>
     </b-row>
@@ -93,7 +93,7 @@ export default {
       jsonCreateNewUserParams['dob'] = this.dateOfBirth;
       jsonCreateNewUserParams['email'] = this.email;
       jsonCreateNewUserParams['password'] = this.password;
-      const jsonCreateNewUserApiUrl = `/jsonCreateNewUser`;
+      const jsonCreateNewUserApiUrl = `/services/jsonCreateNewUser`;
       const jsonCreateNewUserOutput = await this.performPostHttpRequest(jsonCreateNewUserApiUrl, jsonCreateNewUserParams);
       console.log(jsonCreateNewUserOutput);
       if (jsonCreateNewUserOutput['status'] != 'SUCCESS')
@@ -138,7 +138,7 @@ export default {
 
       const jsonSendActivationEmailParams = {};
       jsonSendActivationEmailParams['email'] = this.email;
-      const jsonSendActivationEmailApiUrl = '/jsonSendActivationEmail';
+      const jsonSendActivationEmailApiUrl = '/services/jsonSendActivationEmail';
       const jsonSendActivationEmailOutput = await this.performPostHttpRequest(jsonSendActivationEmailApiUrl, jsonSendActivationEmailParams);
       console.log(jsonSendActivationEmailOutput);
       if (jsonSendActivationEmailOutput['status'] != 'SUCCESS')

@@ -15,6 +15,12 @@
             </b-form-group>
           </b-col>
         </b-row>
+        
+        <b-row class="mb-3">
+          <b-col class="text-left"><b-link to="/forgot-username">Forgot your user name?</b-link></b-col>
+          <b-col class="text-right"><b-link to="/forgot-password">Forgot your password?</b-link></b-col>
+        </b-row>
+
         <b-row class="justify-content-center">
           <b-button
             type="submit"
@@ -24,14 +30,15 @@
             Log In
           </b-button>
         </b-row>
-        <b-row class="justify-content-center mt-2">
-          <b-col>
-            Forgot user name?
-          </b-col>
-          <b-col>
-            Forgot password?
-          </b-col>
+
+        <b-row class="justify-content-center">
+          <p>Don't have an account? <b-link to="/signup">Sign Up</b-link></p>
         </b-row>
+
+        <b-row class="justify-content-center">
+          <b-link to="/email-activation">Need another activation email?</b-link>
+        </b-row>
+
       </b-card>
     </b-row>
   </b-container>
@@ -81,7 +88,7 @@ export default {
       jsonCreateNewUserParams['dob'] = this.dateOfBirth;
       jsonCreateNewUserParams['email'] = this.email;
       jsonCreateNewUserParams['password'] = this.password;
-      const jsonCreateNewUserApiUrl = `/jsonCreateNewUser`;
+      const jsonCreateNewUserApiUrl = `/services/jsonCreateNewUser`;
       const jsonCreateNewUserOutput = await this.performPostHttpRequest(jsonCreateNewUserApiUrl, jsonCreateNewUserParams);
       console.log(jsonCreateNewUserOutput);
       if (jsonCreateNewUserOutput['status'] != 'SUCCESS')
