@@ -1,5 +1,6 @@
 <template>
     <b-container fluid>
+        <h3>My Reviews</h3>
         <b-card v-for="item in reviewsForList" :key="item.reviewid">
             <b-row class="justify-content-between">
                 <p><b>{{ item.first_name }} {{ item.last_name }}</b></p> 
@@ -11,6 +12,10 @@
                 <span v-for="img in item.imgArray" :key="img.imageid">
                     <img :src="img.image" style="padding:25px">
                 </span>
+            </b-row>
+            <b-row class="float-right">
+                <b-button variant="success" size="sm" @click="editReview(item)">Edit</b-button>
+                <b-button variant="danger" size="sm" @click="confirmDelete(item.reviewid)">Delete</b-button>
             </b-row>
         </b-card>
         <b-row class="justify-content-center">
@@ -26,34 +31,66 @@
             size="sm"
             ></b-pagination>
         </b-row>
+        <b-modal ref="deleteModal" 
+                title="Delete Review?"
+                okTitle="Yes"
+                cancelTitle="No"
+                cancel-variant="danger"
+                ok-variant="success"
+                id="testing"
+                hide-header-close
+                @ok="deleteReview()"
+                @cancel="cancelDelete()">
+            Are you sure you want to delete this review?
+        </b-modal>
+        <b-modal
+            ref="deletedModal"
+            title="Success!"
+            ok-only
+        >
+        Review has been successfully deleted!
+        </b-modal>
+        <b-modal
+            ref="editModal"
+            title="Edit Review"
+            hide-footer>
+            <edit-review
+                :reviewData="selectedReviewInfo"
+                @close="hideEditModal()"
+                @success="refreshPage()"
+            />
+        </b-modal>
     </b-container>
 </template>
 
 <script>
+import EditReview from "../components/EditReview.vue";
+
 export default {
+    components: {
+        EditReview,
+    },
     data() {
         return {
+            userid: 'USR00001',
+            reviewsArray: [],
             currentPage : 1,
-            perPage : 3,
-            reviewsArray : [],
+            perPage : 5,
+            selectedReview: '',
+            selectedReviewInfo: {},
         }
     },
-    props :
-    {
-        productid : String,
-        userid : String,
-    },
     async mounted() 
-    {  
-        this.reviewsArray = await this.fetchReviews();
+    {
+        this.reviewsArray = await this.fetchUsersReviews();
         console.log(this.reviewsArray);
     },
     methods : 
     {
-        async fetchReviews() 
+        async fetchUsersReviews() 
         {
-            console.log(`Fetching reviews for ${this.productid}`);
-            const apiUrl = `/jsonFetchReviewsByProductID/${this.productid}/${this.userid}`;
+            console.log(`Fetching user reviews for ${this.userid}`);
+            const apiUrl = `/jsonFetchReviewsByUserID/${this.userid}`;
             const jsonFetchReviewsOutput = await this.performGetHttpRequest(apiUrl);
             console.log(jsonFetchReviewsOutput);
             if (jsonFetchReviewsOutput['status'] != 'SUCCESS') return [];
@@ -95,6 +132,42 @@ export default {
 
             return Object.values(reviewObject);
         },
+        confirmDelete(reviewid)
+        {
+            this.$refs.deleteModal.show();
+            this.selectedReview = reviewid;
+        },
+        async deleteReview()
+        {
+            console.log(`Deleting user reviews for ${this.selectedReview}`);
+            const params = {};
+            params['reviewid'] = this.selectedReview;
+            const apiUrl = `/jsonDeleteReviewsByReviewID`;
+            const jsonFetchReviewsOutput = await this.performPutHttpRequest(apiUrl, params);
+            console.log(jsonFetchReviewsOutput);
+            if (jsonFetchReviewsOutput['status'] != 'SUCCESS') console.log("Failed to delete review");
+            this.reviewsArray = await this.fetchUsersReviews();
+            this.$refs.deletedModal.show();
+        },
+        cancelDelete()
+        {
+            this.selectedReview = '';
+        },
+        editReview(reviewInfo)
+        {
+            this.$refs.editModal.show();
+            this.selectedReviewInfo = JSON.parse(JSON.stringify(reviewInfo)); //create a deep copy
+        },
+        hideEditModal()
+        {
+            this.$refs.editModal.hide();
+            this.selectedReviewInfo = {};
+        },
+        async refreshPage()
+        {
+            this.hideEditModal();
+            this.reviewsArray = await this.fetchUsersReviews();
+        }
     },
     computed : 
     {

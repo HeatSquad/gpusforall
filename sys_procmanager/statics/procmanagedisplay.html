@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>sys_procmanager</title>
+    <link rel="stylesheet" href="./css/procmanagestyles.css">
+</head>
+<body>
+    <script src="./js/procmanagerequests.js"></script>
+    <div id="container" class="bg-body">
+        <div id="proc-body">
+            <div id="wrapper-header">
+                <h1>sys_procmanager</h1>
+            </div>
+            <br>
+            <div id="card-ecosystem" class="p-card px-3 py-2">
+                <h3>Ecosystem</h3>
+                <div id="wrapper-ecosystem" class="p-row">
+                    <div id="wrapper-ecosystem-details">
+                        <!-- TODO: fix later -->
+                        <div class="p-row">
+                            <span>ip address: </span>
+                            <span id="ipaddress-display"></span>
+                        </div>
+                        <div class="p-row">
+                            <span>subnet: </span>
+                            <span id="subnet-display"></span>
+                        </div>
+                    </div>
+                    <div id="wrapper-ecosystem-operations">
+                        <div class="p-row mb-3">
+                            <button id="button-ecosystem-restart" class="p-button txt-white bg-success mx-2">Restart Ecosystem</button>
+                            <button id="button-ecosystem-shutdown" class="p-button txt-white bg-danger mx-2">Shutdown Ecosystem</button>
+                        </div>
+                        <div class="p-row">
+                            <button id="button-ecosystem-resume" class="p-button txt-success outline-success mx-2">Resume Ecosystem</button>
+                            <button id="button-ecosystem-stop" class="p-button txt-danger outline-danger mx-2">Stop Ecosystem</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <div id="card-services" class="p-card px-3 py-2">
+                <div class="p-row">
+                    <button id="button-refresh" class="p-button txt-white bg-dark mx-2 mb-3">Refresh</button>
+                </div>
+                <table id="table-services"></table>
+                <p id="error-feedback-list-services">There are no services running</p>
+            </div>
+            <br>
+            <div id="card-service-details" class="p-card px-3 py-2">
+                <div id="wrapper-service-details" class="p-row">
+                    <div id="wrapper-service-info">
+                        <div class="p-row">
+                            <span>pm_id: </span>
+                            <span id="info-pmid"></span>
+                        </div>
+                        <div class="p-row">
+                            <span>name: </span>
+                            <span id="info-name"></span>
+                        </div>
+                        <div class="p-row">
+                            <span>pid: </span>
+                            <span id="info-pid"></span>
+                        </div>
+                        <div class="p-row">
+                            <span>instances: </span>
+                            <span id="info-instances"></span>
+                        </div>
+                        <div class="p-row">
+                            <span>port: </span>
+                            <span id="info-port"></span>
+                        </div>
+                        <div class="p-row">
+                            <span>uptime: </span>
+                            <span id="info-uptime"></span>
+                        </div>
+                        <div class="p-row">
+                            <span>cpu: </span>
+                            <span id="info-cpu"></span>
+                        </div>
+                        <div class="p-row">
+                            <span>memory: </span>
+                            <span id="info-mem"></span>
+                        </div>
+                        <div class="p-row">
+                            <span>mode: </span>
+                            <span id="info-mode"></span>
+                        </div>
+                        <div class="p-row">
+                            <span>status: </span>
+                            <span id="info-status"></span>
+                        </div>
+                        <br>
+                        <br>
+                        <p class="mb-2">All Instances</p>
+                        <div class="mb-3">
+                            <button id="button-service-restart-all-instances" class="p-button txt-white bg-success">Restart All</button>
+                            <button id="button-service-shutdown-all-instances" class="p-button txt-white bg-danger">Shutdown All</button>
+                        </div>
+                        <div class="mb-4">
+                            <button id="button-service-resume-all-instances" class="p-button txt-success outline-success">Resume All</button>
+                            <button id="button-service-stop-all-instances" class="p-button txt-danger outline-danger">Stop All</button>
+                        </div>
+                        <p class="mb-2">Current Instance</p>
+                        <div class="mb-4">
+                            <button id="button-service-resume-current-instance" class="p-button txt-success outline-success">Resume Current</button>
+                            <button id="button-service-stop-current-instance" class="p-button txt-danger outline-danger">Stop Current</button>
+                        </div>
+                    </div>
+                    <div class="divider-vert"></div>
+                    <div id="wrapper-service-logs" class="p-row">
+                        <div id="wrapper-view-logs">
+                            <button id="button-view-logs" class="p-button txt-white bg-dark">View Logs</button>
+                        </div>
+                        <div id="logs"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="proc-sidebar" class="p-card">
+            <h3>Status Log</h3>
+            <div id="proc-sidebar-statuses">
+
+            </div>
+        </div>
+    </div>
+</body>
+</html>

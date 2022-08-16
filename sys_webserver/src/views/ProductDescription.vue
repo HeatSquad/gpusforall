@@ -2,6 +2,7 @@
     <div>
         <review-display
             :productid="productid"
+            :userid="userid"
         >
         </review-display>
         <write-review

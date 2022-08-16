@@ -4,6 +4,7 @@
             <b-button class="mx-2 px-4" @click="navigateToOrders">Orders</b-button>
             <b-button class="mx-2 px-4">Transactions</b-button>
             <b-button class="mx-2 px-4" to="/wishlist">Wishlist</b-button>
+            <b-button class="mx-2 px-4" to="/reviews">Reviews</b-button>
         </b-row>
         <b-row class="justify-content-between">
             <b-col cols="8">
@@ -64,7 +65,7 @@
             <b-col cols="2" align-self="center" >
                 <b-card>
                 <div class="user-profile-image-container" style="border: 1px dashed blue;">
-                    <img src="/images/user-profile-placeholder.png" />
+                    <img src="./../assets/images/user-profile-placeholder.png" />
                 </div>
                 <b-row class="justify-content-center my-2">
                     <b-button variant="primary" class="px-5">Edit</b-button>
@@ -726,6 +727,9 @@ export default {
         // TODO: Get userid from the cookie/session instead of hardcoding here
         this.userid = 'USR00002';
 
+        // Remove later
+        console.log(this.getCurrentDateLocalTime());
+
         // Card Expiration Month options
         const mappedNumericMonths = listOfNumericMonths.map((m) => {
             return { text: m, value: m };
@@ -767,7 +771,7 @@ export default {
         async fetchCurrentUser()
         {
             const userid = this.userid;
-            const apiUrl = `/jsonFetchUser/${userid}`;
+            const apiUrl = `/services/jsonFetchUser/${userid}`;
             const jsonFetchCurrentUserOutput = await this.performGetHttpRequest(apiUrl);
             if (jsonFetchCurrentUserOutput['status'] != 'SUCCESS') return this.performShowErrorMessage(`Failed to fetch current user`);
             if (jsonFetchCurrentUserOutput['resultset'].length <= 0) return this.performShowErrorMessage(`Current user does not exist`);
@@ -817,7 +821,7 @@ export default {
         async fetchCurrentUserPaymentInfo()
         {
             const userid = this.userid;
-            const apiUrl = `/jsonFetchUserPaymentInfo/${userid}`;
+            const apiUrl = `/services/jsonFetchUserPaymentInfo/${userid}`;
             const jsonFetchCurrentUserOutput = await this.performGetHttpRequest(apiUrl);
             if (jsonFetchCurrentUserOutput['status'] != 'SUCCESS') return this.performShowErrorMessage(`Failed to fetch current user's payment information`);
             if (jsonFetchCurrentUserOutput['resultset'].length <= 0)
@@ -997,7 +1001,7 @@ export default {
             }
             
             const userid = this.userid;
-            const apiUrl = `/jsonUpdateUserFullName`;
+            const apiUrl = `/services/jsonUpdateUserFullName`;
             const apiParams = {};
             apiParams['userid'] = userid;
             apiParams['first_name'] = firstNameEditTrimmed;
@@ -1033,7 +1037,7 @@ export default {
             }
 
             const userid = this.userid;
-            const apiUrl = `/jsonUpdateUserEmail`;
+            const apiUrl = `/services/jsonUpdateUserEmail`;
             const apiParams = {};
             apiParams['userid'] = userid;
             apiParams['email'] = email;
@@ -1068,7 +1072,7 @@ export default {
             }
 
             const userid = this.userid;
-            const apiUrl = `/jsonUpdateUserPhoneNumber`;
+            const apiUrl = `/services/jsonUpdateUserPhoneNumber`;
             const apiParams = {};
             apiParams['userid'] = userid;
             apiParams['phone'] = phone;
@@ -1102,7 +1106,7 @@ export default {
             }
 
             const userid = this.userid;
-            const apiUrl = `/jsonUpdateUserDob`;
+            const apiUrl = `/services/jsonUpdateUserDob`;
             const apiParams = {};
             apiParams['userid'] = userid;
             apiParams['dob'] = dob;
@@ -1158,7 +1162,7 @@ export default {
             }
 
             const userid = this.userid;
-            const apiUrl = `/jsonUpdateUserPassword`;
+            const apiUrl = `/services/jsonUpdateUserPassword`;
             const apiParams = {};
             apiParams['userid'] = userid;
             apiParams['current_password'] = currentPassword;
@@ -1243,7 +1247,7 @@ export default {
             }
 
             const userid = this.userid;
-            const apiUrl = `/jsonUpdateUserShippingAddress`;
+            const apiUrl = `/services/jsonUpdateUserShippingAddress`;
             const apiParams = {};
             apiParams['userid'] = userid;
             if (this.shippingAddress['street1'] != street1) apiParams['street1'] = street1;
@@ -1338,7 +1342,7 @@ export default {
             }
 
             const userid = this.userid;
-            const apiUrl = `/jsonUpdateUserBillingAddress`;
+            const apiUrl = `/services/jsonUpdateUserBillingAddress`;
             const apiParams = {};
             apiParams['userid'] = userid;
             if (this.billingAddress['street1'] != street1) apiParams['street1'] = street1;
@@ -1398,7 +1402,7 @@ export default {
             }
 
             const userid = this.userid;
-            const apiUrl = `/jsonEditUserCreditCardInformation`;
+            const apiUrl = `/services/jsonEditUserCreditCardInformation`;
             const apiParams = {};
             apiParams['uuid'] = uuid;
             apiParams['userid'] = userid;
@@ -1469,7 +1473,7 @@ export default {
             }
 
             const userid = this.userid;
-            const apiUrl = `/jsonAddUserCreditCardInformation`;
+            const apiUrl = `/services/jsonAddUserCreditCardInformation`;
             const apiParams = {};
             apiParams['userid'] = userid;
             apiParams['cardholder_name'] = cardholderName;
