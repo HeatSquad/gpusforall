@@ -1,4 +1,5 @@
 import gpusGeneral from './../helpers/general.js';
+import sharedGeneral from './../../../shared_general/general.js';
 import axios from 'axios';
 
 export default 
@@ -14,34 +15,25 @@ export default
             const arrayOfValidMethods = ['GET', 'POST', 'PUT'];
             if (!arrayOfValidMethods.includes(processedMethod)) return gpusGeneral.buildJsonErrorMessage(`ERROR: method is not allowed`);
 
-            const axiosInstance = axios.create({
-                baseURL: 'http://localhost:3000/apis',
-                timeout: 10000,
-            });
+            // TODO: put hostname and apisbaseurl somewhere?
+            const baseUrl = 'http://localhost:3040/apis';
+            const gatewayProxyPath = '/gateway/jsonApiGateway';
+            const gatewayProxyBodyParams = {};
+            gatewayProxyBodyParams['api_endpoint'] = apiEndpoint;
+            gatewayProxyBodyParams['api_method'] = method;
+            if (params) gatewayProxyBodyParams['api_params'] = params;
+
+            const axiosConfig = {};
+            axiosConfig['baseURL'] = baseUrl;
+            axiosConfig['method'] = 'POST';
+            axiosConfig['timeout'] = 10000;
+            const axiosInstance = axios.create(axiosConfig);
+
             let httpResponse = null;
-            if (processedMethod === 'GET')
-            {
-                try {
-                    httpResponse = await axiosInstance.get(apiEndpoint);
-                } catch (error) {
-                    return gpusGeneral.buildJsonErrorMessage(error);
-                }
-            }
-            else if (processedMethod === 'POST')
-            {
-                try {
-                    httpResponse = await axiosInstance.post(apiEndpoint, params);
-                } catch (error) {
-                    return gpusGeneral.buildJsonErrorMessage(error);
-                }
-            }
-            else if (processedMethod === 'PUT')
-            {
-                try {
-                    httpResponse = await axiosInstance.put(apiEndpoint, params);
-                } catch (error) {
-                    return gpusGeneral.buildJsonErrorMessage(error);
-                }
+            try {
+                httpResponse = await axiosInstance.post(gatewayProxyPath, gatewayProxyBodyParams);
+            } catch (error) {
+                return gpusGeneral.buildJsonErrorMessage(error);
             }
 
             if (!httpResponse['status']) return gpusGeneral.buildJsonErrorMessage(`ERROR: http response status does not exist`);
@@ -68,5 +60,13 @@ export default
             console.log(apiEndpoint);
             return this.performHttpRequest(apiEndpoint, params, 'PUT');
         },
+
+        // ====================================================================
+        // Shared General
+        // ====================================================================
+        getCurrentDateLocalTime: function()
+        {
+            return sharedGeneral.getCurrentDateLocalTime();
+        }
     }
 }

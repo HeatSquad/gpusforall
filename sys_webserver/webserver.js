@@ -1,4 +1,17 @@
-// const fileSystem = require('fs');
+/**
+ * TODO:
+ * 1) cors
+ * 2) whitelisted domains
+ * 3) helmet => contentsecuritypolicy?
+ * app.use(helmet.contentSecurityPolicy({
+      directives: {
+          "connect-src": ["http://localhost:8080"]
+      }
+  }));
+ * 4) Logging
+ * 5) Error handling
+ * 
+ */
 const path = require('path');
 const config = require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 if (config.error)
@@ -6,124 +19,78 @@ if (config.error)
   console.error('Failed to load environmental variables');
   throw config.error;
 }
+const scriptName = path.basename(__filename);
+const port = process.env.PORT;
+// const whitelistedDomains = process.env.WHITELISTED_DOMAINS.split('|');
+
 const express = require('express');
+const router = express.Router();
+// const helmet = require('helmet');
 const cors = require('cors');
-const helmet = require('helmet');
-const app = express();
-// const port = 3010;
-// const whitelistedDomains = process.env.WHITELISTED_DOMAINS.split(' ');
-const pathToPackagedApp = __dirname + '/dist/';
 const corsOption =
 {
     origin: "http://localhost:8080"
 };
-// const corsOption = 
-// {
-//   origin: function(origin, callback)
-//   {
-//     console.log('origin: ', origin);
-//     if (whitelistedDomains.indexOf(origin) !== -1 || !origin)
-//     {
-//       callback(null, true);
-//     }
-//     else 
-//     {
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   }
-// };
+const { loadStaticPathNotFoundRedirect } = require('./../shared_server/general.js');
 
-app.use(cors(corsOption));                        // cross-origin resource sharing
-// Secures app, setting HTTP headers
-// app.use(helmet.contentSecurityPolicy({
-//     directives: {
-//         "connect-src": ["http://localhost:8080"]
-//     }
-// }));
-// app.use(helmet.crossOriginEmbedderPolicy());
-// app.use(helmet.crossOriginOpenerPolicy());
-// app.use(helmet.crossOriginResourcePolicy());
-// app.use(helmet.dnsPrefetchControl());
-// app.use(helmet.expectCt());
-// app.use(helmet.frameguard());
-// app.use(helmet.hidePoweredBy());
-// app.use(helmet.hsts());
-// app.use(helmet.ieNoOpen());
-// app.use(helmet.noSniff());
-// app.use(helmet.originAgentCluster());
-// app.use(helmet.permittedCrossDomainPolicies());
-// app.use(helmet.referrerPolicy());
-// app.use(helmet.xssFilter());
-app.options('*', cors())                          // include before other routes
-app.use(express.json());                          // for parsing application/json
-app.use(express.urlencoded({ extended: true }));  // for parsing application/x-www-form-urlencoded
+const app = express();
+app.use(cors(corsOption));                        // Resolves cross-origin resource sharing
+app.options('*', cors())                          // Enables pre-flighting for requests with methods other than GET/HEAD/POST (like DELETE)
+// app.use(helmet());                                  // Secures app, setting HTTP headers
+app.use(express.json({limit: '10mb'}));                            // for parsing application/json
+app.use(express.urlencoded({ limit: '10mb', extended: true }));    // for parsing application/x-www-form-urlencoded
 
-// ========================================================
-// Middleware
-// ========================================================
-// function logger(req, res, next)
-// {
-//   console.log('API Endpoint was hit. (This is an example log)');
-//   next();
-// }
-// function processResponse(req, res, next)
-// {
-//   if (!res.pendingResponse) return next(new Error('Pending response object is undefined'));
-  
-//   console.log(res.apiEndpoint);
-//   const status = res.pendingResponse['status'];
-//   const message = res.pendingResponse['message'];
-//   const resultset = res.pendingResponse['resultset'];
-//   if (status === undefined || message === undefined || resultset === undefined) return next(new Error('Pending response is missing expected properties'));
-//   console.log(message);
-//   res.json(res.pendingResponse);
-// }
-function requestErrorHandler(err, req, res, next)
-{
-  console.error(err);
-  const jsonError = {};
-  jsonError['status'] = 'ERROR';
-  jsonError['message'] = err;
-  res.json(jsonError);
-}
+const pathToPublicAssets = path.join(__dirname, './public', './images');
+const pathToFavicon = path.join(__dirname, './public', 'favicon.ico');
+const pathToStatics = path.join(__dirname, './dist');
+const pathToIndex = path.join(__dirname, './dist/index.html');
+// TODO: Remove later =========================================================
+// console.log(process.env);
+console.log('Path to public assets: ', pathToPublicAssets);
+console.log('Path to favicon: ', pathToFavicon);
+console.log('Path to statics: ', pathToStatics);
+console.log('Path to index: ', pathToIndex);
+// ============================================================================
 
-// ========================================================
-// Pre-HTTP Request Middleware
-// ========================================================
-// app.use(logger);
-
-// Go through all files under apis and serve the endpoints
-// const fileArray = fileSystem.readdirSync(process.env.PATH_APIS).map(file => path.join(process.env.PATH_APIS, file));
-// const apiArray = [].concat.apply([],fileArray.map(filePath => {return require(filePath)}));
-// ********************************************************
-// TODO: Remove after everything's done
-console.log(process.env);
-// console.log(whitelistedDomains);
-
-// This line serves statics
-app.use(express.static('public'));
-app.use(express.static(pathToPackagedApp));
-
-app.get('/', (_req, res) =>
-{
-    res.sendFile(pathToPackagedApp + 'index.html');
+router.use(express.static(pathToPublicAssets));         // Loads public assets
+router.use(express.static(pathToFavicon));              // Loads favicon
+router.use(express.static(pathToStatics));              // Loads statics of current service
+router.get('/', (req, res, next) => {                   // Serve on root
+  res.sendFile(pathToIndex);
 });
-app.all("*", (_req, res) => 
-{
-    try {
-        res.sendFile(pathToPackagedApp + 'index.html');
-    } catch (err) {
-        res.json({ success: false, message: "Something went wrong" });
-    }
-});
-
-// ========================================================
-// Post-HTTP Request Middleware
-// ========================================================
-app.use(requestErrorHandler);
+loadStaticPathNotFoundRedirect(router, '/');    // Load error handlerse
+app.use(router);
 
 // Start the server on the specified port
-app.listen(process.env.PORT_SYS_WEBSERVER, () =>
+const httpServer = app.listen(port, () =>
 {
-  console.log(`Example app listening on port ${process.env.PORT_SYS_WEBSERVER}`);
+  console.log(`${scriptName} listening on port ${port}`);
+  process.send('ready');
+});
+httpServer.on('error', (e) => {
+  if (e.code === 'EADDRINUSE')
+  {
+      console.log(`${scriptName} is in use.`);
+  }
+});
+// Intercept signal for graceful restart/reload/stop
+// Note: Only works on linux servers, won't work on windows
+process.on('SIGINT', () => {
+  console.log(`SIGINT signal received: closing server ${scriptName}`);
+
+  // Stops the server from accepting new connections and finishes existing connections
+  httpServer.close((err) => {
+      if (err)
+      {
+          console.error(err)
+          process.exit(1);
+      }
+      console.log(`HTTP server ${scriptName} closed.`);
+
+      // Close any db connections/end processing jobs here
+      // --
+
+      // Exit with succss (code 0)
+      process.exit(0);
+  });
 });

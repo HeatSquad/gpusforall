@@ -16,7 +16,7 @@ function buildJsonErrorMessage(message)
     return jsonResult;
 }
 
-function buildJsonSuccessMessage(message, resultset = [])
+function buildJsonSuccessMessage(message, resultset)
 {
     const jsonResult = {};
     jsonResult['status'] = 'SUCCESS';

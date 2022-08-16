@@ -3,7 +3,7 @@
     <!-- Menu -->
     <b-navbar toggleable="md" type="dark" variant="info" class="pr-3">
       <b-navbar-brand to="/" class="m-3">
-        <img src="/images/8bitgpu.jpeg"/> GPUs 4 All
+        <img src="./assets/images/8bitgpu.jpeg"/> GPUs 4 All
       </b-navbar-brand>
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
       <b-collapse id="nav-collapse" is-nav>
@@ -34,7 +34,7 @@
             </b-nav-item-dropdown>
         </b-navbar-nav>
         <b-navbar-nav v-else class="ml-5 mr-5">
-          <b-nav-item class="mr-3">Log In</b-nav-item>
+          <b-nav-item to="/login" class="mr-3">Log In</b-nav-item>
           <b-button to="/signup">Sign Up</b-button>
         </b-navbar-nav>
       </b-collapse>

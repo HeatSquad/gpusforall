@@ -253,6 +253,31 @@ async function replyto_jsonSubmitReviews(req, res)
     if (req.body.text === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: text', req, res);
     if (req.body.title === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: title', req, res);
 
+    //Check to see if the user has a review already
+    const checkBindParams = [];
+    checkBindParams.push(req.body.productid);
+    checkBindParams.push(req.body.userid);
+
+    const sqlStmtCheckReview = `
+        SELECT reviewid
+          FROM reviews
+          WHERE productid = ?
+            AND userid = ?
+            AND deleted <> 'Y'
+    `;
+    const jsonCheckReviewsPromise = mySqlConnection.execMySql(sqlStmtCheckReview, checkBindParams);
+    const jsonCheckReviewsOutput = await jsonCheckReviewsPromise;
+    if (jsonCheckReviewsOutput['status'] != 'SUCCESS')
+    {
+        console.log(jsonCheckReviewsOutput);
+        return gpusGeneral.buildJsonErrorMessage(`Failed to check for review for product with id: ${req.params.productid}`, req, res)
+    }
+    if(jsonCheckReviewsOutput['resultset'].length > 0)
+    {
+        console.log(jsonCheckReviewsOutput);
+        return gpusGeneral.buildJsonErrorMessage(`This user already has a review for product with id: ${req.params.productid}`, req, res)
+    }
+
     const arrayBindParams = [];
     arrayBindParams.push(req.body.productid);
     arrayBindParams.push(req.body.userid);
@@ -347,9 +372,10 @@ apiArray.push(
 
 async function replyto_jsonEditReviews(req, res)
 {
-    if (req.body.reviewid === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: reviewid', req, res);
     if (req.body.productid === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: productid', req, res);
+    if (req.body.reviewid === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: reviewid', req, res);
     if (req.body.userid === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: userid', req, res);
+    if (req.body.title === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: title', req, res);
     if (req.body.text === undefined) return gpusGeneral.buildJsonInvalidParameters('Missing required parameter: text', req, res);
 
     const arrayBindParams = [];
@@ -377,40 +403,54 @@ async function replyto_jsonEditReviews(req, res)
     }
     console.log(jsonEditReviewsOutput);
 
-    //loop through the array of images and insert each one, one by one 
-    if (req.body.images)
+    if(req.body.images)
     {
-        imagesArray = req.body.images;
+        const imgIdsArray = req.body.images.map(imgObj => imgObj.imageid);
+        const sqlBindPrms = [];
+        imgIdsArray.forEach(imageid => sqlBindPrms.push(imageid));
+        sqlBindPrms.push(req.body.reviewid);
+        let imageids = [];
+        for(let i = 0; i < imgIdsArray.length; i++) imageids.push('?');
+        const imageidsSql = imageids.join(',');
+
+        const sqlUpdateImages = 
+        `
+            UPDATE review_images
+            SET deleted = 'Y'
+            WHERE imageid NOT IN (${imageidsSql})
+              AND reviewid = ?
+              AND deleted <> 'Y'
+        `;
+
+        console.log(sqlUpdateImages);
+        const jsonUpdateImgPromise = mySqlConnection.execMySql(sqlUpdateImages, sqlBindPrms);
+        console.log(jsonUpdateImgPromise)
+        const jsonUpdateImgOutput = await jsonUpdateImgPromise;
+        console.log(jsonUpdateImgOutput)
+        if (jsonUpdateImgOutput['status'] != 'SUCCESS')
+        {
+            console.log(jsonUpdateImgOutput);
+            return gpusGeneral.buildJsonErrorMessage(`Failed to update images for product with id: ${req.params.productid}`, req, res)
+        }
+    }
+
+    //loop through the array of images and insert each one, one by one 
+    if (req.body.newimages)
+    {
+        imagesArray = req.body.newimages;
         for (let i  = 0; i < imagesArray.length; i++)
         {
             const sqlBindPrms = [];
-            let sqlStmtImg = ``;
+            sqlBindPrms.push(req.body.reviewid);
+            sqlBindPrms.push(imagesArray[i]);
+            sqlBindPrms.push(req.body.userid);
+            sqlBindPrms.push(req.body.userid);
 
-            if(imagesArray[i].imageid == NULL)
-            {
-                sqlBindPrms.push(req.body.reviewid);
-                sqlBindPrms.push(imagesArray[i]);
-                sqlBindPrms.push(req.body.userid);
-                sqlBindPrms.push(req.body.userid);
-                sqlStmtImg = 
-                `
-                    INSERT INTO review_images (reviewid, image, created_by, modified_by)
-                    VALUES (?, ?, ?, ?)
-                `;
-            }
-            else if (imagesArray[i].imageid != NULL)
-            {
-                sqlBindPrms.push(imagesArray[i].image);
-                sqlBindPrms.push(req.body.reviewid);
-                sqlBindPrms.push(imagesArray[i].imageid);
-                sqlStmtImg = 
-                `
-                    UPDATE review_images
-                        SET image = ?
-                    WHERE reviewid = ?
-                        AND imageid = ?
-                `;
-            }
+            const sqlStmtImg = 
+            `
+                INSERT INTO review_images (reviewid, image, created_by, modified_by)
+                VALUES (?, ?, ?, ?)
+            `;
 
             const jsonSubmitImgPromise = mySqlConnection.execMySql(sqlStmtImg, sqlBindPrms);
             const jsonSubmitImgOutput = await jsonSubmitImgPromise;
