@@ -40,6 +40,26 @@ const routes = [
     component: () => import(/* webpackChunkName: "about" */ '../views/SignUp.vue')
   },
   {
+    path: '/activate-account',
+    name: 'Activate Account',
+    component: () => import(/* webpackChunkName: "about" */ '../views/ActivateAccount.vue')
+  },
+  {
+    path: '/email-activation',
+    name: 'Email Activation',
+    component: () => import(/* webpackChunkName: "about" */ '../views/EmailActivation.vue')
+  },
+  {
+    path: '/account-created',
+    name: 'Account Created',
+    component: () => import(/* webpackChunkName: "about" */ '../views/AccountCreated.vue')
+  },
+  {
+    path: '/login',
+    name: 'Log In',
+    component: () => import(/* webpackChunkName: "about" */ '../views/LogIn.vue')
+  },
+  {
     path: '/reviews',
     name: 'Reviews',
     component: () => import(/* webpackChunkName: "about" */ '../views/Reviews.vue')
