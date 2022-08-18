@@ -9,6 +9,7 @@
       <b-collapse id="nav-collapse" is-nav>
         <b-navbar-nav>
           <b-nav-item to="/">Home</b-nav-item>
+          <b-nav-item to="/product-search">Products</b-nav-item>
           <b-nav-item to="/about">About</b-nav-item>
           <b-nav-item to="/about">Specials</b-nav-item>
           <b-nav-item to="/about">Top Sellers</b-nav-item>
@@ -17,8 +18,8 @@
         </b-navbar-nav>
         <b-navbar-nav class="ml-auto">
           <b-nav-form class="mr-3">
-            <b-form-input size="sm" class="mr-sm-2" placeholder="Search"></b-form-input>
-            <b-button size="sm" class="my-2 my-sm-0" type="submit">Search</b-button>
+            <b-form-input v-model="searchString" @keydown.enter="searchProduct" size="sm" class="mr-sm-2" ref="searchString" placeholder="Search" required></b-form-input>
+            <b-button size="sm" class="my-2 my-sm-0" @click="searchProduct">Search</b-button> <!-- need to load page with data-->
           </b-nav-form>
         </b-navbar-nav>
         <b-navbar-nav v-if="loggedIn" class="align-items-center">
@@ -76,12 +77,19 @@ export default {
   data: function() {
     return {
       loggedIn: true,
+      searchString: ''
     }
   },
   methods:
   {
     performLogOut() {
       this.loggedIn = false;
+    },
+    async searchProduct(e) 
+    {
+      console.log(this.searchString);
+      e.preventDefault();
+      this.$router.push({name: 'Product Search', params: {'product_name': this.searchString}});
     }
   }
 }

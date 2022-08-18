@@ -6,11 +6,11 @@ module.exports = apiArray;
 
 async function replyto_jsonAddToCart(req, res)
 {
-    if (req.body.productid === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Missing required parameter:`);
-    if (req.body.userid === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Missing required parameter:`);
-    if (req.body.quantity === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Missing required parameter:`);
-    if (req.body.created_by === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Missing required parameter:`);
-    if (req.body.modified_by === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Missing required parameter:`);
+    if (req.body.productid === undefined) return gpusGeneral.buildJsonErrorMessage(`Missing required parameter:`);
+    if (req.body.userid === undefined) return gpusGeneral.buildJsonErrorMessage(`Missing required parameter:`);
+    if (req.body.quantity === undefined) return gpusGeneral.buildJsonErrorMessage(`Missing required parameter:`);
+    if (req.body.created_by === undefined) return gpusGeneral.buildJsonErrorMessage(`Missing required parameter:`);
+    if (req.body.modified_by === undefined) return gpusGeneral.buildJsonErrorMessage(`Missing required parameter:`);
 
     const arrayBindParams = [];
     arrayBindParams.push(req.body.productid);
@@ -25,7 +25,7 @@ async function replyto_jsonAddToCart(req, res)
             VALUES(?, ?, ?, ?, ?, ?)`;
     const jsonGetSysDataPromise = mySqlConnection.execMySql(sqlInsertIntoshoppingcart, arrayBindParams);
     const jsonGetSysDataOutput = await jsonGetSysDataPromise;
-    if (jsonGetSysDataOutput['status'] != 'SUCCESS') return gpusGeneral.replywith_jsonErrorMessage(`Error message:`, req, res);
+    if (jsonGetSysDataOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`Error message:`, req, res);
 
     return jsonGetSysDataOutput;
 }
@@ -46,7 +46,7 @@ apiArray.push(
 
 async function replyto_jsonRemoveFromShoppingCart(req, res)
 {
-    if (req.body.shoppingcartid === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Error message:`, req, res);
+    if (req.body.shoppingcartid === undefined) return gpusGeneral.buildJsonErrorMessage(`Error message:`, req, res);
 
     const arrayBindParams = [];
     arrayBindParams.push(req.body.shoppingcartid);
@@ -55,7 +55,7 @@ async function replyto_jsonRemoveFromShoppingCart(req, res)
         `UPDATE shopping_cart set deleted = 'Y' WHERE shoppingcartid = ?`;
     const jsonSetDataPromise = mySqlConnection.execMySql(sqlInsertIntoshoppingcart, arrayBindParams);
     const jsonSetDataOutput = await jsonSetDataPromise;
-    if (jsonSetDataOutput['status'] != 'SUCCESS') return gpusGeneral.replywith_jsonErrorMessage(`Error message:`, req, res);
+    if (jsonSetDataOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`Error message:`, req, res);
 
     return jsonSetDataOutput;
 }
@@ -76,20 +76,21 @@ apiArray.push(
 
 async function replyto_jsonGetShoppingCart(req, res)
 {
-    if (req.params.userid === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Error message: Missing parameter userid `, req, res);
+    //if (req.session.userid === undefined) return gpusGeneral.buildJsonErrorMessage(`Error: Missing parameter userid `, req, res);
 
-    const userid = req.body.userid;
+    const userid = req.params.userid;
     const arrayBindParams = [];
     arrayBindParams.push(userid);
 
-    const sqlInsertIntoWishlist =
+    const sqlGetShoppingCart =
 		`SELECT	*
           FROM	shopping_cart
     	  WHERE userid = ?
             `;
-    const jsonSetDataPromise = mySqlConnection.execMySql(sqlInsertIntoWishlist, arrayBindParams);
+    const jsonSetDataPromise = mySqlConnection.execMySql(sqlGetShoppingCart,arrayBindParams);
     const jsonSetDataOutput = await jsonSetDataPromise;
-    if (jsonSetDataOutput['status'] != 'SUCCESS') return gpusGeneral.replywith_jsonErrorMessage(`Error message:`, req, res);
+    console.log(jsonSetDataPromise);
+    if (jsonSetDataOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`Error:Was not able to get shopping cart for ${userid}`, req, res);
 
     return jsonSetDataOutput;
 }
