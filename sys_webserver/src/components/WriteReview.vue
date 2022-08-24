@@ -89,7 +89,7 @@ export default {
             params['title'] = this.title;
             params['text'] = this.review;
             params['images'] = this.imgArray;
-            const apiUrl = `/jsonSubmitReviews`;
+            const apiUrl = `/services/jsonSubmitReviews`;
             const jsonSubmitOutput = await this.performPostHttpRequest(apiUrl, params);
             console.log(jsonSubmitOutput);
             if (jsonSubmitOutput['status'] != 'SUCCESS')

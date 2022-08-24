@@ -47,7 +47,7 @@ export default {
         async fetchReview()
         {
             console.log(`Fetching review for ${this.productid} for user ${this.userid}`);
-            const apiUrl = `/jsonFetchReviewsByUserAndProduct/${this.productid}/${this.userid}`;
+            const apiUrl = `/services/jsonFetchReviewsByUserAndProduct/${this.productid}/${this.userid}`;
             const jsonFetchReviewsOutput = await this.performGetHttpRequest(apiUrl);
             console.log(jsonFetchReviewsOutput);
             if (jsonFetchReviewsOutput['status'] != 'SUCCESS') return [];
