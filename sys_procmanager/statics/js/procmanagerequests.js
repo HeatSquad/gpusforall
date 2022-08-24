@@ -2,8 +2,6 @@ var currentServiceViewed = null;
 
 window.onload = function(e)
 {
-    console.log('window loaded');
-
     document.getElementById('button-ecosystem-restart').onclick = () => { restartEcosystem(); };
     document.getElementById('button-ecosystem-shutdown').onclick = () => { shutdownEcosystem(); };
     document.getElementById('button-ecosystem-resume').onclick = () => { resumeEcosystem(); };
@@ -17,6 +15,11 @@ window.onload = function(e)
     document.getElementById('button-service-stop-current-instance').onclick = () => { stopCurrentInstance(); };
 
     document.getElementById('button-refresh').onclick = () => { onRefreshButtonClicked(); };
+    // TEMP =========================
+    document.getElementById('button-heartbeat-registry').onclick = () => { onHeartbeatRegistryClicked(); };
+    document.getElementById('button-heartbeat-cache').onclick = () => { onHeartbeatCacheClicked(); };
+    document.getElementById('button-flush-cache').onclick = () => { onFlushCacheClicked(); };
+    // ===============================
     buildServices();
     fetchNetworkInformation();
 }
@@ -26,7 +29,6 @@ window.onload = function(e)
 // ============================================================================
 function buildServices()
 {
-    console.log('buildServices');
     appendStatusMessage('Fetching active services...');
 
     fetch('/apis/proc/jsonFetchAllServices', {
@@ -124,7 +126,6 @@ function buildServices()
 
 function fetchNetworkInformation()
 {
-    console.log('fetchNetworkInformation');
     appendStatusMessage('Fetching network information...');
 
     fetch('/apis/proc/jsonFetchCurrentNetworkAddress', {
@@ -169,18 +170,15 @@ function performHttpProcManagerRequest(apiEndpoint, httpMethod, loadingStatusMsg
     fetch(apiEndpoint, options)
         .then(response => response.json())
         .then(data => {
-            console.log('testing');
             if (data['status'] != 'SUCCESS') return appendStatusMessageError(data['message']);
             if (data['resultset'].length > 0)
             {
-                console.log('WE GOT HIT');
                 const jsonIncompleteStartupError = data['resultset'][0];
                 const incompleteStartupError = jsonIncompleteStartupError['error'];
                 appendStatusMessageError(incompleteStartupError);
             }
             else
             {
-                console.log('we got hit instead');
                 appendStatusMessage(data['message']);
             }
 
@@ -235,6 +233,36 @@ function resetServiceDetails()
     currentServiceViewed = null;
     document.getElementById('card-service-details').style.visibility = 'hidden';
 }
+
+// TEMP: REMOVE LATER =========================================================
+function onHeartbeatRegistryClicked()
+{
+    console.log('onHeartbeatRegistryClicked');
+    const apiEndpoint = '/apis/proc/jsonHeartbeatRegistry';
+    const httpMethod = 'POST';
+    const loadingStatusMsg = 'Heartbeat Registry...';
+    const errStatusMsg = 'Failed to send heartbeat for registry.';
+    performHttpProcManagerRequest(apiEndpoint, httpMethod, loadingStatusMsg, errStatusMsg);
+}
+function onHeartbeatCacheClicked()
+{
+    console.log('onHeartbeatCacheClicked');
+    const apiEndpoint = '/apis/proc/jsonHeartbeatCache';
+    const httpMethod = 'POST';
+    const loadingStatusMsg = 'Heartbeat Cache...';
+    const errStatusMsg = 'Failed to send heartbeat for cache.';
+    performHttpProcManagerRequest(apiEndpoint, httpMethod, loadingStatusMsg, errStatusMsg);
+}
+function onFlushCacheClicked()
+{
+    console.log('onFlushCacheClicked');
+    const apiEndpoint = '/apis/proc/jsonFlushCache';
+    const httpMethod = 'POST';
+    const loadingStatusMsg = 'Flushing Cache...';
+    const errStatusMsg = 'Failed to flush cache.';
+    performHttpProcManagerRequest(apiEndpoint, httpMethod, loadingStatusMsg, errStatusMsg);
+}
+// ============================================================================
 
 // ============================================================================
 // Ecosystem
