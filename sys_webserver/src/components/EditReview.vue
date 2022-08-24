@@ -107,7 +107,7 @@ export default {
             params['text'] = this.review;
             params['images'] = this.imgArray;
             params['newimages'] = this.newImgArray;
-            const apiUrl = `/jsonEditReviews`;
+            const apiUrl = `/services/jsonEditReviews`;
             const jsonSubmitOutput = await this.performPutHttpRequest(apiUrl, params);
             console.log(jsonSubmitOutput);
             if (jsonSubmitOutput['status'] != 'SUCCESS')

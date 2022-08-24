@@ -90,7 +90,7 @@ export default {
         async fetchUsersReviews() 
         {
             console.log(`Fetching user reviews for ${this.userid}`);
-            const apiUrl = `/jsonFetchReviewsByUserID/${this.userid}`;
+            const apiUrl = `/services/jsonFetchReviewsByUserID/${this.userid}`;
             const jsonFetchReviewsOutput = await this.performGetHttpRequest(apiUrl);
             console.log(jsonFetchReviewsOutput);
             if (jsonFetchReviewsOutput['status'] != 'SUCCESS') return [];
@@ -142,7 +142,7 @@ export default {
             console.log(`Deleting user reviews for ${this.selectedReview}`);
             const params = {};
             params['reviewid'] = this.selectedReview;
-            const apiUrl = `/jsonDeleteReviewsByReviewID`;
+            const apiUrl = `/services/jsonDeleteReviewsByReviewID`;
             const jsonFetchReviewsOutput = await this.performPutHttpRequest(apiUrl, params);
             console.log(jsonFetchReviewsOutput);
             if (jsonFetchReviewsOutput['status'] != 'SUCCESS') console.log("Failed to delete review");
