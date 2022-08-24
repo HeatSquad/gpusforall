@@ -1,85 +1,77 @@
 const mysql = require('mysql2');
+const { MySqlDbError } = require('./helpers_error/error_mysqldb.js');
+const pool = {};
 
 // ========================================================
-// Connection Initialization and Event Handling
+// Connection Initialization, Execution, and Shutdown
 // ========================================================
 // Create the pool of connections
 // Connections are lazily created by the pool.
 // Connections are also cycled round-robin style
-let pool = null;
-async function initializePool()
+async function initializePool(configs)
 {
     console.log('**************************************************');
-    console.log('INITIALIZING MYSQL POOOOOOOOOOOOOOOOOOOOOOOOOOL');
+    console.log('INITIALIZING MYSQL POOL');
     console.log('**************************************************');
-    pool = await mysql.createPool({
-        host            : process.env.MYSQL_HOST,
-        port            :  process.env.MYSQL_PORT,
-        user            : process.env.MYSQL_USER,
-        password        : process.env.MYSQL_PASSWORD,
-        database        : process.env.MYSQL_DATABASE,
-        waitForConnections: true,
-        connectionLimit : 100,
-        queueLimit      : 0,
-    });
+    for (const dbName in configs)
+    {
+        console.log(`Initializing connection to MYSQL database [${dbName}]`);
+        const dbConfig = configs[dbName];
+        const host = dbConfig['host'];
+        const port = dbConfig['port'];
+        const user = dbConfig['user'];
+        const password = dbConfig['password'];
+        const database = dbConfig['database'];
+        const connectionLimit = dbConfig['connectionLimit'];
+        const queueLimit = dbConfig['queueLimit'];
+        const waitForConnectionszzz = dbConfig['waitForConnections'];
 
-    if (pool != null) console.log('Pool was created');
-    if (pool == null) console.log('Pool failed to be created');
-    
-    // Pool Events
-    pool.on('acquire', function(connection)
-    {
-        console.log('Connection %d acquired', connection.threadId);
-    });
-    pool.on('connection', function(connection)
-    {
-        // connection.query('SET SESSION auto_increment_increment=1')
-        console.log('Connection was made');
-    });
-    pool.on('enqueue', function ()
-    {
-        console.log('Waiting for available connection slot');
-    });
-    pool.on('release', function(connection)
-    {
-        console.log('Connection %d released', connection.threadId);
-    });
+        if (host === undefined) return MySqlDbError.buildJsonError('HOST_UNDEFINED');
+        if (port === undefined) return MySqlDbError.buildJsonError('PORT_UNDEFINED');
+        if (user === undefined) return MySqlDbError.buildJsonError('USER_UNDEFINED');
+        if (password === undefined) return MySqlDbError.buildJsonError('PASSWORD_UNDEFINED');
+        if (database === undefined) return MySqlDbError.buildJsonError('DATABASE_UNDEFINED');
+        if (connectionLimit === undefined) return MySqlDbError.buildJsonError('CONNECTION_LIMIT_UNDEFINED');
+        if (queueLimit === undefined) return MySqlDbError.buildJsonError('QUEUE_LIMIT_UNDEFINED');
+        if (waitForConnectionszzz === undefined) return MySqlDbError.buildJsonError('WAIT_CONNECTIONS_UNDEFINED');
+
+        pool[dbName] = await mysql.createPool(dbConfig);
+        console.log(`Created pool for db [${dbName}]`);
+
+        // Pool Events
+        pool[dbName].on('acquire', function(connection)
+        {
+            console.log('Connection %d acquired', connection.threadId);
+        });
+        pool[dbName].on('connection', function(connection)
+        {
+            // connection.query('SET SESSION auto_increment_increment=1')
+            console.log('Connection was made');
+        });
+        pool[dbName].on('enqueue', function ()
+        {
+            console.log('Waiting for available connection slot');
+        });
+        pool[dbName].on('release', function(connection)
+        {
+            console.log('Connection %d released', connection.threadId);
+        });
+    }
 }
 
-function endAllPoolConnections()
-{
-    // TODO: Release all connections (check each connection)
-    // pool.end(function(err) {
-    //     // all connections in the pool have ended
-    //     console.log('All connections in the pool have ended');
-    // });
-}
-
-// ========================================================
-// Callable functions
-// ========================================================
 async function execMySql(sqlStmt, arrayBindParams, isWriting)
 {
-    if (pool == null) await initializePool();
-    if (pool == null)
-    {
-        const jsonPoolError = {};
-        jsonPoolError['status'] = 'ERROR';
-        jsonPoolError['message'] = '';
-        jsonPoolError['resultset'] = null;
-        // jsonPoolError['fields'] = null;
-        return jsonPoolError;
-    }
+    const activeDbName = 'sys';
+    if (!pool[activeDbName]) return MySqlDbError.buildJsonError('ACTIVE_DB_NOT_FOUND');
 
-    const jsonExecMySqlPromise = new Promise((resolve, reject) =>
-    {
-        const jsonResult = {};
-        jsonResult['status'] = 'ERROR';
-        jsonResult['message'] = '';
-        jsonResult['resultset'] = [];
-        // jsonResult['fields'] = null;
+    const jsonResult = {};
+    jsonResult['status'] = 'ERROR';
+    jsonResult['message'] = '';
+    jsonResult['resultset'] = [];
 
-        pool.getConnection(function(errorConnection, connection) 
+    return new Promise((resolve, reject) =>
+    {
+        pool[activeDbName].getConnection(function(errorConnection, connection) 
         {
             if (errorConnection != null) // not connected!
             {
@@ -125,7 +117,6 @@ async function execMySql(sqlStmt, arrayBindParams, isWriting)
                 jsonResult['status'] = 'SUCCESS';
                 jsonResult['message'] = 'Query was successfully executed.';
                 jsonResult['resultset'] = results;
-                // jsonResult['fields'] = fields;
             
                 // Don't use the connection here, it has been returned to the pool.
                 return resolve(jsonResult);
@@ -136,13 +127,42 @@ async function execMySql(sqlStmt, arrayBindParams, isWriting)
         console.error(jsonError['message']);
         return jsonError;
     });
-    const jsonExecMySqlOutput = await jsonExecMySqlPromise;
-    return jsonExecMySqlOutput;
 }
+
+async function endAllPoolConnections()
+{
+    const activeDbName = 'sys';
+    if (!pool[activeDbName]) return MySqlDbError.buildJsonError('ACTIVE_DB_NOT_FOUND');
+
+    const jsonResult = {};
+    jsonResult['status'] = 'ERROR';
+    jsonResult['message'] = '';
+    jsonResult['resultset'] = [];
+    
+    return new Promise((resolve, reject) => {
+        pool[activeDbName].end(function(err) {
+            if (err)
+            {
+                jsonResult['message'] = `Failed to end all pool connections: ${err}`;
+                return reject(jsonResult);
+            }
+
+            jsonResult['status'] = 'SUCCESS';
+            jsonResult['message'] = 'Successfully ended all pool connections.';
+            return resolve(jsonResult);
+        });
+    })
+    .catch((jsonError) => {
+        console.error(jsonError['message']);
+        return jsonError;
+    });
+}
+
 module.exports =
 {
     initializePool: initializePool,
     execMySql: execMySql,
+    endAllPoolConnections: endAllPoolConnections,
 };
 
 // Basic way to create a connection ***********************

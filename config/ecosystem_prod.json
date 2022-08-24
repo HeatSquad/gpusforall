@@ -13,7 +13,8 @@
             {
                 "PORT": 3050,
                 "SERVICE_PATH": "proc"
-            }
+            },
+            "exp_backoff_restart_delay": 100
         },
         {
             "name": "sys_webserver",
@@ -25,7 +26,8 @@
             "max_memory_restart": "1G",
             "env":
             {
-                "PORT": 8080
+                "PORT": 8080,
+                "SERVICE_PATH": ""
             }
         },
         {
