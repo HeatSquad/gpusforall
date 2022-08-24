@@ -22,7 +22,36 @@ const corsOption =
     methods: ['GET', 'POST', 'PUT', 'PATCH']
 };
 const { loadAppRouterProc, loadErrorLoadAppRouter, loadErrorResourceNotFound } = require('./../shared_server/general.js');
+const { initializePool, endAllPoolConnections } = require('./../shared_server/wrappers_mysql.js');
+const { initializeRedisClient, connectRedis, endRedisConnection } = require('./../shared_server/wrappers_redis.js');
 
+// ============================================================================
+// Database Connections
+// ============================================================================
+const dbConfig = {};
+dbConfig[process.env.MYSQL_DATABASE] = {};
+dbConfig[process.env.MYSQL_DATABASE]['host'] = process.env.MYSQL_HOST;
+dbConfig[process.env.MYSQL_DATABASE]['port'] = process.env.MYSQL_PORT;
+dbConfig[process.env.MYSQL_DATABASE]['user'] = process.env.MYSQL_USER;
+dbConfig[process.env.MYSQL_DATABASE]['password'] = process.env.MYSQL_PASSWORD;
+dbConfig[process.env.MYSQL_DATABASE]['database'] = process.env.MYSQL_DATABASE;
+dbConfig[process.env.MYSQL_DATABASE]['connectionLimit'] = 100;
+dbConfig[process.env.MYSQL_DATABASE]['queueLimit'] = 0;
+dbConfig[process.env.MYSQL_DATABASE]['waitForConnections'] = true;
+initializePool(dbConfig);
+
+(async function() {
+    const cacheConfig = {};
+    cacheConfig['host'] = process.env.REDIS_HOST;
+    cacheConfig['port'] = process.env.REDIS_PORT;
+    cacheConfig['password'] = process.env.REDIS_PASSWORD;
+    await initializeRedisClient(cacheConfig);
+    await connectRedis();
+})();
+
+// ============================================================================
+// Express Routes and Statics
+// ============================================================================
 const app = express();
 app.use(cors(corsOption));                          // Resolves cross-origin resource sharing
 app.options('*', cors())                            // Enables pre-flighting for requests with methods other than GET/HEAD/POST (like DELETE)
@@ -32,8 +61,8 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));    // for parsin
 
 const pathToApis = path.join(__dirname, './apis');
 const pathToStatics = path.join(__dirname, './statics');
+
 // TODO: Remove later =========================================================
-// console.log(process.env);
 console.log('Path to apis: ', pathToApis);
 console.log('Path to statics: ', pathToStatics);
 // ============================================================================
@@ -43,7 +72,9 @@ loadErrorLoadAppRouter(router);                         // Loads error handlers
 loadErrorResourceNotFound(router);
 app.use(router);
 
-// Start the server on the specified port
+// ============================================================================
+// Server Startup
+// ============================================================================
 const httpServer = app.listen(port, () => {
     console.log(`${scriptName} listening on port ${port}`);
     process.send('ready');
@@ -60,7 +91,7 @@ process.on('SIGINT', () => {
     console.log(`SIGINT signal received: closing server ${scriptName}`);
 
     // Stops the server from accepting new connections and finishes existing connections
-    httpServer.close((err) => {
+    httpServer.close(async (err) => {
         if (err)
         {
             console.error(err)
@@ -69,9 +100,8 @@ process.on('SIGINT', () => {
         console.log(`HTTP server ${scriptName} closed.`);
 
         // Close any db connections/end processing jobs here
-        // --
-
-        // Exit with succss (code 0)
+        await endRedisConnection();
+        await endAllPoolConnections();
         process.exit(0);
     });
 });
