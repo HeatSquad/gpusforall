@@ -1,41 +1,81 @@
 const mySqlConnection = require('../../shared_server/wrappers_mysql.js');
 const gpusGeneral = require('../../shared_server/general.js');
+const nodemailer = require("nodemailer");
 
 const apiArray = [];
 module.exports = apiArray;
 
 async function replyto_jsonCreateNewUser(req, res)
 {
-    if (req.body.username === undefined) return gpusGeneral.buildJsonInvalidParameters(`Missing required parameter: username`, req, res);
-    if (req.body.password === undefined) return gpusGeneral.buildJsonInvalidParameters(`Missing required parameter: password`, req, res);
-    if (req.body.email === undefined) return gpusGeneral.buildJsonInvalidParameters(`Missing required parameter: email`, req, res);
+    if (req.body.user_name === undefined) return gpusGeneral.buildJsonInvalidParameters(`Missing required parameter: user_name`, req, res);
     if (req.body.first_name === undefined) return gpusGeneral.buildJsonInvalidParameters(`Missing required parameter: first_name`, req, res);
     if (req.body.last_name === undefined) return gpusGeneral.buildJsonInvalidParameters(`Missing required parameter: last_name`, req, res);
     if (req.body.dob === undefined) return gpusGeneral.buildJsonInvalidParameters(`Missing required parameter: dob`, req, res);
+    if (req.body.email === undefined) return gpusGeneral.buildJsonInvalidParameters(`Missing required parameter: email`, req, res);
+    if (req.body.password === undefined) return gpusGeneral.buildJsonInvalidParameters(`Missing required parameter: password`, req, res);
 
-    const username = req.body.username;
-    const password = req.body.password;
-    const email = req.body.email;
+    const userName = req.body.user_name;
     const firstName = req.body.first_name;
     const lastName = req.body.last_name;
     const dob = req.body.dob;
+    const email = req.body.email;
+    const password = req.body.password;
 
     // Validate inputs
-    if (username.length <= 0) gpusGeneral.buildJsonErrorMessage(`Username is empty`, req, res);
-    if (username.length > 30) gpusGeneral.buildJsonErrorMessage(`Username cannot be longer than 30 characters`, req, res);
-    if (password.length <= 0) gpusGeneral.buildJsonErrorMessage(`Password is empty`, req, res);
-    if (password.length < 12) gpusGeneral.buildJsonErrorMessage(`Password must be at least 12 characters`, req, res);
-    if (password.length > 100) gpusGeneral.buildJsonErrorMessage(`Password cannot be longer than 100 characters`, req, res);
-    if (email.length <= 0) gpusGeneral.buildJsonErrorMessage(`Email is empty`, req, res);
-    if (email.length > 320) gpusGeneral.buildJsonErrorMessage(`Email cannot be longer than 320 characters`, req, res);
-    if (firstName.length <= 0) gpusGeneral.buildJsonErrorMessage(`First name is empty`, req, res);
-    if (firstName.length > 100) gpusGeneral.buildJsonErrorMessage(`First name cannot be longer than 100 characters`, req, res);
-    if (lastName.length <= 0) gpusGeneral.buildJsonErrorMessage(`Last name is empty`, req, res);
-    if (lastName.length > 100) gpusGeneral.buildJsonErrorMessage(`Last name cannot be longer than 100 characters`, req, res);
-    if (dob.length <= 0) return gpusGeneral.buildJsonErrorMessage(`Date of Birth is empty`);
-    if (dob.length > 10) return gpusGeneral.buildJsonErrorMessage(`Date of Birth cannot be longer than 10 characters`);
+    if (userName.length <= 0) return gpusGeneral.buildJsonErrorMessage(`Username is empty.`, req, res);
+    if (userName.length > 30) return gpusGeneral.buildJsonErrorMessage(`Username cannot be longer than 30 characters.`, req, res);
+    
+    if (firstName.length <= 0) return gpusGeneral.buildJsonErrorMessage(`First name is empty.`, req, res);
+    if (firstName.length > 100) return gpusGeneral.buildJsonErrorMessage(`First name cannot be longer than 100 characters.`, req, res);
+
+    if (lastName.length <= 0) return gpusGeneral.buildJsonErrorMessage(`Last name is empty.`, req, res);
+    if (lastName.length > 100) return gpusGeneral.buildJsonErrorMessage(`Last name cannot be longer than 100 characters.`, req, res);
+
+    if (dob.length <= 0) return gpusGeneral.buildJsonErrorMessage(`Date of Birth is empt.`);
+    if (dob.length > 10) return gpusGeneral.buildJsonErrorMessage(`Date of Birth cannot be longer than 10 characters.`);
     const dobRegex = /[0-9]{4}-[0-9]{2}-[0-9]{2}/;
-    if (!dobRegex.test(dob)) return gpusGeneral.buildJsonErrorMessage(`Date of Birth is an invalid format`);
+    if (!dobRegex.test(dob)) return gpusGeneral.buildJsonErrorMessage(`Date of Birth is an invalid format.`);
+
+    if (email.length <= 0) return gpusGeneral.buildJsonErrorMessage(`Email is empty.`, req, res);
+    if (email.length > 320) return gpusGeneral.buildJsonErrorMessage(`Email cannot be longer than 320 characters.`, req, res);
+
+    if (password.length <= 0) return gpusGeneral.buildJsonErrorMessage(`Password is empty.`, req, res);
+    if (password.length < 12) return gpusGeneral.buildJsonErrorMessage(`Password must be at least 12 characters.`, req, res);
+    if (password.length > 100) return gpusGeneral.buildJsonErrorMessage(`Password cannot be longer than 100 characters.`, req, res);
+
+    // Check if user name exists
+    const arrayBindParamCheckUserNameExists = [userName];
+
+    const sqlStmtCheckUserNameExists = `
+    SELECT username
+      FROM sys.users
+     WHERE username = ?
+    `;
+
+    const jsonCheckUserNameExistsPromise = mySqlConnection.execMySql(sqlStmtCheckUserNameExists, arrayBindParamCheckUserNameExists);
+    const jsonCheckUserNameExistsOutput = await jsonCheckUserNameExistsPromise;
+    if (jsonCheckUserNameExistsOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`Failed to check if username exists.`, req, res);
+
+    console.log(jsonCheckUserNameExistsOutput.resultset);
+
+    if (jsonCheckUserNameExistsOutput.resultset.length > 0) return gpusGeneral.buildJsonErrorMessage(`${jsonCheckUserNameExistsOutput.resultset[0].username} already exists. Please try another user name.`, req, res);
+
+    // Check if email exists
+    const arrayBindParamCheckEmailExists = [email];
+
+    const sqlStmtCheckEmailExists = `
+    SELECT email
+      FROM sys.users
+     WHERE email = ?
+    `;
+
+    const jsonCheckEmailExistsPromise = mySqlConnection.execMySql(sqlStmtCheckEmailExists, arrayBindParamCheckEmailExists);
+    const jsonCheckEmailExistsOutput = await jsonCheckEmailExistsPromise;
+    if (jsonCheckEmailExistsOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`Failed to check if email exists.`, req, res);
+
+    console.log(jsonCheckEmailExistsOutput.resultset);
+
+    if (jsonCheckEmailExistsOutput.resultset.length > 0) return gpusGeneral.buildJsonErrorMessage(`${jsonCheckEmailExistsOutput.resultset[0].email} already exists. Please try another email.`, req, res);
 
     // Encrypt password
     const jsonGenerateSaltOutput = await gpusGeneral.cryptoRandomBytes(32);
@@ -47,19 +87,20 @@ async function replyto_jsonCreateNewUser(req, res)
     const encryptedPassword = gpusGeneral.cryptoHashMessage256Bit(password, salt);
     if (encryptedPassword == null) return gpusGeneral.buildJsonErrorMessage(`Salt is incorrect length`, req, res);
 
-    const arrayBindParams = [];
-    arrayBindParams.push(username);
-    arrayBindParams.push(email);
-    arrayBindParams.push(firstName);
-    arrayBindParams.push(lastName);
-    arrayBindParams.push(dob);
-    arrayBindParams.push(encryptedPassword);
-    arrayBindParams.push(salt);
-    arrayBindParams.push(username);
+    const arrayBindParamsCreateUser = [];
+    arrayBindParamsCreateUser.push(userName);
+    arrayBindParamsCreateUser.push(firstName);
+    arrayBindParamsCreateUser.push(lastName);
+    arrayBindParamsCreateUser.push(dob);
+    arrayBindParamsCreateUser.push(email);
+    arrayBindParamsCreateUser.push(encryptedPassword);
+    arrayBindParamsCreateUser.push(salt);
+    arrayBindParamsCreateUser.push(userName);
+
     const sqlStmtCreateUser = `
-    INSERT INTO sys.users (username, email, first_name, last_name, dob, password, salt, modified_by)
+    INSERT INTO sys.users (username, first_name, last_name, dob, email, password, salt, modified_by)
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-    const jsonCreateUserPromise = mySqlConnection.execMySql(sqlStmtCreateUser, arrayBindParams);
+    const jsonCreateUserPromise = mySqlConnection.execMySql(sqlStmtCreateUser, arrayBindParamsCreateUser);
     const jsonCreateUserOutput = await jsonCreateUserPromise;
     if (jsonCreateUserOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`Failed to create new user. ${jsonCreateUserOutput['message']}`, req, res);
 
@@ -83,6 +124,287 @@ apiArray.push(
                 "first_name": "Thuc",
                 "last_name": "Nguyen",
                 "dob": "1990-01-01",
+            }
+        }
+    }
+);
+
+async function replyto_jsonSendActivationEmail(req, res)
+{
+  console.log('You hit the replyto_jsonSendActivationEmail API');
+
+  if (req.body.email === undefined) return gpusGeneral.buildJsonInvalidParameters(`Missing required parameter: email`, req, res);
+
+  const email = req.body.email;
+
+   // Check if email exists
+   const arrayBindParamCheckEmailExists = [email];
+
+   const sqlStmtCheckEmailExists = `
+   SELECT email, verified
+     FROM sys.users
+    WHERE email = ?
+   `;
+
+   const jsonCheckEmailExistsPromise = mySqlConnection.execMySql(sqlStmtCheckEmailExists, arrayBindParamCheckEmailExists);
+   const jsonCheckEmailExistsOutput = await jsonCheckEmailExistsPromise;
+   if (jsonCheckEmailExistsOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`Failed to check if email exists.`, req, res);
+
+   console.log(jsonCheckEmailExistsOutput.resultset);
+
+   if (jsonCheckEmailExistsOutput.resultset.length == 0) return gpusGeneral.buildJsonErrorMessage(`${email} does not exist. Please try another email or create a new account.`, req, res);
+
+   // Check if already verified.
+   //   If already verified,then send error message stating this account has already been activated and return.
+   //   No need to continue...
+   const jsonResultSet = jsonCheckEmailExistsOutput.resultset[0];
+   const verified = jsonResultSet['verified'];
+   if (verified == 1) return gpusGeneral.buildJsonErrorMessage(`The account for ${email} already has been activated.`, req, res);
+
+  // Generate random alphanumeric
+  let alphaNumeric = '0123456789z0S0bAyxal1ghG89VIEL23XOND5Uwk6e1Pc381H5mC24B74s6M985duQjTW0pq9JfK4o62Rtiv73Fr7n';
+  let len = 6;
+  let message = [];
+  for (let i = 0; i < len; i++) {
+    let index = Math.floor(Math.random() * alphaNumeric.length);
+    message.push(alphaNumeric.charAt(index));
+  }
+  message = message.join('');
+
+  console.log(message);
+
+  let salt = await gpusGeneral.cryptoRandomBytes(32);
+  salt = salt.resultset[0].buf.toString('hex');
+  console.log(salt);
+
+  let hash = gpusGeneral.cryptoHashMessage256Bit(message, salt);
+  console.log(hash);
+
+  let expires = new Date();
+  console.log(expires);
+  expires = `${expires.getFullYear().toString().padStart(2,0)}-${(expires.getMonth() + 1).toString().padStart(2, 0)}-${(expires.getDate() + 1).toString().padStart(2, 0)} ${expires.getHours().toString().padStart(2, 0)}:${expires.getMinutes().toString().padStart(2, 0)}:${expires.getSeconds().toString().padStart(2, 0)}`;
+  console.log(expires);
+
+  // Save hash
+  const jsonUser = {};
+  jsonUser['hash'] = hash;
+  jsonUser['expires'] = expires;
+
+  const arrayBindParamSaveHash = [];
+  arrayBindParamSaveHash.push(salt);
+  arrayBindParamSaveHash.push(JSON.stringify(jsonUser));
+  arrayBindParamSaveHash.push(email);
+
+  const sqlStmtSaveHash = `
+  UPDATE sys.users
+  SET salt = ?, json_user = ?
+  WHERE email = ?
+  `;
+
+  const jsonSaveHashPromise = mySqlConnection.execMySql(sqlStmtSaveHash, arrayBindParamSaveHash);
+  const jsonSaveHashOutput = await jsonSaveHashPromise;
+  if (jsonSaveHashOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`Failed to save hash.`, req, res);
+  if (jsonSaveHashOutput['affectedRows'] == 0) return gpusGeneral.buildJsonErrorMessage(`Failed to save hash.`, req, res);
+
+  console.log(jsonSaveHashOutput);
+
+  // create reusable transporter object using the default SMTP transport
+  let transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: "heatsquad4@gmail.com", // generated ethereal user
+      pass: "fychaoznlihatpiy", // generated ethereal password
+    },
+  });
+
+  // send mail with defined transport object
+  let info = await transporter.sendMail({
+    from: '"Heat Squad 👻" <heatsquad4@gmail.com>', // sender address
+    to: email, // list of receivers
+    subject: "Activate Your Account", // Subject line
+    text: "To get started, please activate your account.", // plain text body
+    html: `
+    Greetings!
+    <br><br>Please use your activation code to <a target="_blank" href="http://localhost:8080/activate-account">activate your account</a>.
+    <br><br>    <b>Activation Code</b>: ${message}
+    <br>*Expires in 1 day
+    `, // html body
+  });
+
+  console.log("Message sent: %s", info.messageId);
+  // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
+
+  // Preview only available when sending through an Ethereal account
+  console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+  // Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+
+  info['status'] = 'SUCCESS';
+  info['message'] = 'Activation email successfully sent';
+  info['resultset'] = '';
+  
+  console.log(info);
+
+  return info;
+}
+apiArray.push(
+    {
+        method: 'POST',
+        handler: replyto_jsonSendActivationEmail,
+        path: 'jsonSendActivationEmail',
+        options:
+        {
+            public: true,
+            description: '',
+            group: '',
+            sampleParams:
+            {
+                "email": "thuch.nguyen@yahoo.com",
+            }
+        }
+    }
+);
+
+// Create verify function here
+// Query users table using their inputs from the confirm page
+// Check if the user is already verified, then exit
+// Another check is to see if expired already
+// When the user enters the act code on the confirm page, that's the act code they're using to attempt to verify themselves
+// Take the salt in json_user and hash whatever the user entered as the act code in the confirm page.
+// That result is the same as the hash that was saved initally in json_user.
+// If same, set verified to 1, else.....send error message
+async function replyto_jsonVerifyUser(req, res)
+{
+    console.log(`replyto_jsonVerifyUser was hit!!!!`);
+    console.log(req.body);
+    if (req.body.userName === undefined) return gpusGeneral.buildJsonInvalidParameters(`Missing required parameter: userName`, req, res);
+    if (req.body.email === undefined) return gpusGeneral.buildJsonInvalidParameters(`Missing required parameter: email`, req, res);
+    if (req.body.activationCode === undefined) return gpusGeneral.buildJsonInvalidParameters(`Missing required parameter: activationCode`, req, res);
+
+    const userName = req.body.userName;
+    const email = req.body.email;
+    const activationCode = req.body.activationCode;
+
+    // Validate inputs
+    if (userName.length <= 0) return gpusGeneral.buildJsonErrorMessage(`Username is empty.`, req, res);
+    if (userName.length > 30) return gpusGeneral.buildJsonErrorMessage(`Username cannot be longer than 30 characters.`, req, res);
+
+    if (email.length <= 0) return gpusGeneral.buildJsonErrorMessage(`Email is empty.`, req, res);
+    if (email.length > 320) return gpusGeneral.buildJsonErrorMessage(`Email cannot be longer than 320 characters.`, req, res);
+
+    if (activationCode.length <= 0) return gpusGeneral.buildJsonErrorMessage(`Acivation code.`, req, res);
+    if (activationCode.length < 6) return gpusGeneral.buildJsonErrorMessage(`Acivation code must be at least 6 characters.`, req, res);
+    if (activationCode.length > 6) return gpusGeneral.buildJsonErrorMessage(`Acivation code cannot be longer than 6 characters.`, req, res);
+
+    // Check if user name exists
+    const arrayBindParamCheckUserNameExists = [userName];
+
+    const sqlStmtCheckUserNameExists = `
+    SELECT username
+      FROM sys.users
+     WHERE username = ?
+    `;
+
+    const jsonCheckUserNameExistsPromise = mySqlConnection.execMySql(sqlStmtCheckUserNameExists, arrayBindParamCheckUserNameExists);
+    const jsonCheckUserNameExistsOutput = await jsonCheckUserNameExistsPromise;
+    if (jsonCheckUserNameExistsOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`Failed to check if username exists.`, req, res);
+
+    console.log(jsonCheckUserNameExistsOutput.resultset);
+
+    if (jsonCheckUserNameExistsOutput.resultset.length <= 0) return gpusGeneral.buildJsonErrorMessage(`${jsonCheckUserNameExistsOutput.resultset[0].username} does not exist. Please try another user name.`, req, res);
+
+    // Check if email exists
+    const arrayBindParamCheckEmailExists = [email];
+
+    const sqlStmtCheckEmailExists = `
+    SELECT email
+      FROM sys.users
+     WHERE email = ?
+    `;
+
+    const jsonCheckEmailExistsPromise = mySqlConnection.execMySql(sqlStmtCheckEmailExists, arrayBindParamCheckEmailExists);
+    const jsonCheckEmailExistsOutput = await jsonCheckEmailExistsPromise;
+    if (jsonCheckEmailExistsOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`Failed to check if email exists.`, req, res);
+
+    console.log(jsonCheckEmailExistsOutput.resultset);
+
+    if (jsonCheckEmailExistsOutput.resultset.length <= 0) return gpusGeneral.buildJsonErrorMessage(`${email} does not exist. Please try another email.`, req, res);
+
+    // Get hash, expires, salt, verified, and CURRENT_TIMESTAMP, check if verified and the hashes match
+    const arrayBindParamCheckIfVerified = [userName, email];
+
+    const sqlStmtCheckIfVerified = `
+    SELECT verified, salt, json_user, DATE_FORMAT(CURRENT_TIMESTAMP, '%Y-%m-%d %T') AS timestamp
+      FROM sys.users
+     WHERE username = ?
+       AND email = ?
+    `;
+
+    const jsonCheckIfVerifiedPromise = mySqlConnection.execMySql(sqlStmtCheckIfVerified, arrayBindParamCheckIfVerified);
+    const jsonCheckIfVerifiedOutput = await jsonCheckIfVerifiedPromise;
+    if (jsonCheckIfVerifiedOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`Failed to check if verified, get salt, and expires`, req, res);
+
+    console.log(jsonCheckIfVerifiedOutput.resultset);
+    console.log(jsonCheckIfVerifiedOutput.resultset[0]['json_user']);
+
+    const verified = jsonCheckIfVerifiedOutput.resultset[0]['verified'];
+    const salt = jsonCheckIfVerifiedOutput.resultset[0]['salt'];
+    const currentTimeStamp = jsonCheckIfVerifiedOutput.resultset[0]['timestamp'];
+    const jsonUser = jsonCheckIfVerifiedOutput.resultset[0]['json_user'];
+    const hash = jsonUser['hash'];
+    const expires = jsonUser['expires'];
+    console.log(hash);
+    console.log(new Date(expires));
+    console.log(verified);
+    console.log(salt);
+    console.log(new Date(currentTimeStamp));
+
+    if (verified) return gpusGeneral.buildJsonErrorMessage(`Your user account has already been verified`, req, res);
+
+    let activationCodeHash = gpusGeneral.cryptoHashMessage256Bit(activationCode, salt);
+
+    if (hash != activationCodeHash) return gpusGeneral.buildJsonErrorMessage(`Invalid activation code. Please try again.`, req, res);
+
+    console.log(`hash: ${hash}`);
+    console.log(`activationCodeHash: ${activationCodeHash}`);
+
+    if (new Date(currentTimeStamp) >= new Date(expires)) return gpusGeneral.buildJsonErrorMessage(`Activation code has expired. Please request another activation email.`, req, res);
+
+    // Update verified to true
+    const arrayBindParamActivateAccount = [];
+    arrayBindParamActivateAccount.push(email);
+    arrayBindParamActivateAccount.push(userName);
+    arrayBindParamActivateAccount.push(salt);
+
+    const sqlStmtActivateAccount = `
+    UPDATE sys.users
+    SET verified = 1
+    WHERE email = ?
+    AND username = ?
+    AND salt = ?
+    `;
+
+    const jsonActivateAccountPromise = mySqlConnection.execMySql(sqlStmtActivateAccount, arrayBindParamActivateAccount);
+    const jsonActivateAccountOutput = await jsonActivateAccountPromise;
+    if (jsonActivateAccountOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`Failed to activate account.`, req, res);
+    if (jsonActivateAccountOutput['affectedRows'] == 0) return gpusGeneral.buildJsonErrorMessage(`Failed to set account to activated.`, req, res);
+
+    return jsonActivateAccountOutput;
+}
+apiArray.push(
+    {
+        method: 'POST',
+        handler: replyto_jsonVerifyUser,
+        path: 'jsonVerifyUser',
+        options:
+        {
+            public: true,
+            description: '',
+            group: 'User Profile Management',
+            sampleParams:
+            {
+                "userName": "tnguyen1",
+                "email": "thuch.nguyen@yahoo.com",
+                "activationCode": "gottacatchemall"
             }
         }
     }

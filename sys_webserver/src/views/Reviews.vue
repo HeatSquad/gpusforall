@@ -14,7 +14,7 @@
                 </span>
             </b-row>
             <b-row class="float-right">
-                <b-button variant="success" size="sm">Edit</b-button>
+                <b-button variant="success" size="sm" @click="editReview(item)">Edit</b-button>
                 <b-button variant="danger" size="sm" @click="confirmDelete(item.reviewid)">Delete</b-button>
             </b-row>
         </b-card>
@@ -50,11 +50,26 @@
         >
         Review has been successfully deleted!
         </b-modal>
+        <b-modal
+            ref="editModal"
+            title="Edit Review"
+            hide-footer>
+            <edit-review
+                :reviewData="selectedReviewInfo"
+                @close="hideEditModal()"
+                @success="refreshPage()"
+            />
+        </b-modal>
     </b-container>
 </template>
 
 <script>
+import EditReview from "../components/EditReview.vue";
+
 export default {
+    components: {
+        EditReview,
+    },
     data() {
         return {
             userid: 'USR00001',
@@ -62,6 +77,7 @@ export default {
             currentPage : 1,
             perPage : 5,
             selectedReview: '',
+            selectedReviewInfo: {},
         }
     },
     async mounted() 
@@ -136,6 +152,21 @@ export default {
         cancelDelete()
         {
             this.selectedReview = '';
+        },
+        editReview(reviewInfo)
+        {
+            this.$refs.editModal.show();
+            this.selectedReviewInfo = JSON.parse(JSON.stringify(reviewInfo)); //create a deep copy
+        },
+        hideEditModal()
+        {
+            this.$refs.editModal.hide();
+            this.selectedReviewInfo = {};
+        },
+        async refreshPage()
+        {
+            this.hideEditModal();
+            this.reviewsArray = await this.fetchUsersReviews();
         }
     },
     computed : 
