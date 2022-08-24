@@ -1,5 +1,5 @@
-const mySqlConnection = require('../../shared_server/wrappers_mysql.js');
 const gpusGeneral = require('../../shared_server/general.js');
+const cacheRegistryAdapter = require('../../shared_server/adapters_cache/adapter_cache_registry.js');
 
 const apiArray = [];
 module.exports = apiArray;
@@ -27,42 +27,23 @@ async function replyto_jsonApiGateway(req, res)
     if (!apisBaseUrl.startsWith('/')) return gpusGeneral.buildJsonErrorMessage(`apis base url format is invalid`, req, res);
     if (!apiEndpoint.startsWith('/')) return gpusGeneral.buildJsonErrorMessage(`api endpoint format is invalid`, req, res);
 
-    // Get service registry from cache
-    // TODO: Replace with redis -----------------------------------------------
-    const arrayBindParamsFetchRegistry = [];
-    const sqlStmtFetchRegistry = `
-    SELECT pm_id,
-           name,
-           service_path,
-           pid,
-           instances,
-           ipaddress,
-           subnet_mask,
-           port,
-           json_process,
-           status,
-           created,
-           modified
-    FROM sys.registry
-    WHERE status = 'online'
-    `;
-    const jsonFetchRegistryPromise = mySqlConnection.execMySql(sqlStmtFetchRegistry, arrayBindParamsFetchRegistry);
-    const jsonFetchRegistryOutput = await jsonFetchRegistryPromise;
-    if (jsonFetchRegistryOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`Failed to fetch registry`, req, res);
-    if (jsonFetchRegistryOutput['resultset'].length <= 0) return gpusGeneral.buildJsonErrorMessage(`Resultset when fetching registry was empty`, req, res);
-    // ------------------------------------------------------------------------
-
     // Parse the incoming api_endpoint.
     const formattedApiEndpoint = apiEndpoint.slice(1);
     const [servicePath, ...arrayApiName] = formattedApiEndpoint.split('/');
 
-    // Validate that service is in cache
-    const resultsetRegistry = jsonFetchRegistryOutput['resultset'];
-    const arrayRequestedService = resultsetRegistry.filter((jsonInstance) => {
-        return jsonInstance['service_path'] === servicePath;
+    // Get service registry from cache
+    const jsonGetAllInstancesInCacheOutput = await cacheRegistryAdapter.getAllInstancesFromCache(servicePath);
+    if (jsonGetAllInstancesInCacheOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`Failed to get cached instances`, req, res);
+    const jsonInstancesInCache = jsonGetAllInstancesInCacheOutput['result'];
+    const arrayInstancesInCache = Object.values(jsonInstancesInCache);
+    const arrayOnlineInstancesInCache = arrayInstancesInCache.filter((jsonInstance) => jsonInstance['status'] === 'online');
+    if (arrayOnlineInstancesInCache.length <= 0) return gpusGeneral.buildJsonErrorMessage(`Failed to find requested service`, req, res);
+
+    // Substitute algorithm here to determine which instance to route request to
+    const jsonRequestedService = arrayOnlineInstancesInCache.reduce((acc, curr) => {
+        // Return based on lowest cpu usage
+        return ((acc['cpu'] || 0) < (curr['cpu'] || 0)) ? acc : curr;
     });
-    if (arrayRequestedService.length <= 0) return gpusGeneral.buildJsonErrorMessage(`Failed to find requested service`, req, res);
-    const jsonRequestedService = arrayRequestedService[0];
 
     // Construct the complete path
     let protocol = null; 

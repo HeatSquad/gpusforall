@@ -142,8 +142,6 @@ function loadAppRouter(router, pathToApis, preApiHandlerMiddleware, postApiHandl
         if (jsonFile['apiGroup'] == null) completeFilePath = path.join(pathToApis, jsonFile['fileName']);
         if (jsonFile['apiGroup'] != null) completeFilePath = path.join(pathToApis, jsonFile['apiGroup'], jsonFile['fileName']);
 
-        console.log(completeFilePath);
-
         const jsonApiObj = {};
         jsonApiObj['apiGroup'] = jsonFile['apiGroup'];
         jsonApiObj['apiArray'] = require(completeFilePath);
@@ -154,7 +152,7 @@ function loadAppRouter(router, pathToApis, preApiHandlerMiddleware, postApiHandl
         const jsonApiObj = moduleArray[i];
         const apiGroup = jsonApiObj['apiGroup']; 
         const apiArray = jsonApiObj['apiArray'];
-        console.log(`API Array: `, apiArray.map((a) => `\n\t${a.path}`).join(''));
+        console.log('API Array:');
 
         for (let j = 0; j < apiArray.length; j++)
         {
@@ -168,7 +166,7 @@ function loadAppRouter(router, pathToApis, preApiHandlerMiddleware, postApiHandl
             let resolvedPath = null;
             if (apiGroup == null) resolvedPath = [apiBaseUrl, servicePath, apiPath].join('/');
             if (apiGroup != null) resolvedPath = [apiBaseUrl, servicePath, apiGroup, apiPath].join('/');
-            console.log(resolvedPath);
+            console.log(`\t${resolvedPath}`);
     
             // if (method === 'ALL') router.all(resolvedPath, preApiHandlerMiddleware, execApiHandler(handler), postApiHandlerMiddleware);
             if (isApiPublic)            router.all(resolvedPathAllApis, validateHttpMethod);

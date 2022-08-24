@@ -30,6 +30,7 @@ function cryptoRandomBytes(byteLength)
 
 function cryptoHashMessage256Bit(message, salt)
 {
+    console.log(`Buffer.byteLength(): ${Buffer.byteLength(salt, 'hex')}`);
     if (Buffer.byteLength(salt, 'hex') != 32) return null;
     const saltedMessage = '' + message + salt;
     const hash = crypto.createHash('sha256').update(saltedMessage).digest('hex');

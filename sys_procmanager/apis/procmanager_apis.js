@@ -5,9 +5,13 @@
  */
 const mySqlConnection = require('../../shared_server/wrappers_mysql.js');
 const gpusGeneral = require('../../shared_server/general.js');
+const sharedGeneral = require('../../shared_general/general.js');
 const pm2Controller = require('../../shared_server/wrappers_pm2.js');
 const ecosystemDev = require('../../config/ecosystem_dev.json');
 const ecosystemProd = require('../../config/ecosystem_prod.json');
+// TEMP: Remove later
+const cacheRegistryAdapter = require('../../shared_server/adapters_cache/adapter_cache_registry.js');
+// 
 
 const apiArray = [];
 module.exports = apiArray;
@@ -21,6 +25,7 @@ async function replyto_jsonFetchAllServices(req, res)
         const jsonService = {};
         jsonService['pm_id'] = service['pm_id'];
         jsonService['name'] = service['name'];
+        jsonService['service_path'] = service['pm2_env']['SERVICE_PATH'] || '';
         jsonService['pid'] = service['pid'];
         jsonService['instances'] = service['pm2_env']['instances'];
         jsonService['port'] = service['pm2_env']['PORT'];
@@ -58,8 +63,6 @@ async function replyto_jsonFetchServiceDescription(req, res)
 
     const jsonDescribeServiceOutput = await pm2Controller.pm2Describe(pmId);
     if (jsonDescribeServiceOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`Failed to fetch service description with pm2 describe` , req, res);
-
-    console.log(jsonDescribeServiceOutput);
 
     const processedListOfServices = jsonDescribeServiceOutput['resultset'].map((service) => {
         const jsonService = {};
@@ -238,8 +241,6 @@ async function replyto_jsonRestartEcosystem(req, res)
         arrayServicesStarted.push(...jsonStartServiceOutput['resultset']);
         console.log(`${name} succesfully started on port [${port}]`);
     }
-
-    console.log(arrayServicesStarted);
 
     // Return any errors
     if (failedServicesOnStart.length > 0)
@@ -1079,6 +1080,415 @@ apiArray.push(
             {
                 process_identifier: 0
             }
+        }
+    }
+);
+
+// ===========================================================================
+// TEMP: MOVE LOGIC TO DMN LATER
+// ===========================================================================
+// Error out if anything fails. Worst case scenario is when anything in the cache fails. Services won't be reachable. 
+// Separate heartbeat daemon into 2 functions: a heartbeat for pm2 list output to registry, and another heartbeat for registry to cache.
+// Each function can run for ex. every 30sec
+async function replyto_jsonHeartbeatRegistry(req, res)
+{
+    let jsonNetworkAddress = null;
+    if (process.env.NODE_ENV === 'development') jsonNetworkAddress = gpusGeneral.identifyLoopbackNetworkAddress();
+    if (process.env.NODE_ENV === 'production') jsonNetworkAddress = gpusGeneral.identifyExternalNetworkAddress();
+    if (jsonNetworkAddress == null) return gpusGeneral.buildJsonErrorMessage('Failed to identify network address', req, res);
+    const ipAddress = jsonNetworkAddress['address'];
+    const subnetMask = jsonNetworkAddress['netmask'];
+
+    // Transform each structure into lookup maps
+    const lookupMapPm2List = {};
+    const lookupMapTableRegistry = {};
+
+    // Do a pm2 list, this gets all the current running services
+    const jsonListServicesOutput = await pm2Controller.pm2List();
+    if (jsonListServicesOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`Failed to fetch all services with pm2 list` , req, res);
+
+    const processedListOfServices = jsonListServicesOutput['resultset'].filter((service) => {
+        return service['name'] !== 'sys_procmanager';
+    });
+    for (let i = 0; i < processedListOfServices.length; i++)
+    {
+        const service = processedListOfServices[i];
+        const pmId = service['pm_id'];
+        if (lookupMapPm2List[pmId] === undefined) lookupMapPm2List[pmId] = {};
+        lookupMapPm2List[pmId]['pm_id'] = service['pm_id'];
+        lookupMapPm2List[pmId]['name'] = service['name'];
+        lookupMapPm2List[pmId]['service_path'] = service['pm2_env']['SERVICE_PATH'] || '';
+        lookupMapPm2List[pmId]['pid'] = service['pid'];
+        lookupMapPm2List[pmId]['instances'] = service['pm2_env']['instances'];
+        lookupMapPm2List[pmId]['port'] = service['pm2_env']['PORT'];
+        lookupMapPm2List[pmId]['uptime'] = service['pm2_env']['pm_uptime'];
+        lookupMapPm2List[pmId]['cpu'] = service['monit']['cpu'];
+        lookupMapPm2List[pmId]['mem'] = service['monit']['memory'];
+        lookupMapPm2List[pmId]['mode'] = service['pm2_env']['exec_mode'];
+        lookupMapPm2List[pmId]['status'] = service['pm2_env']['status'];
+    }
+
+    // Get all instances of every service in registry
+    const arrayBindParamsGetAllServices = [];
+    const sqlStmtGetAllServices = `
+    SELECT pm_id, 
+           name, 
+           service_path,
+           pid,
+           instances,
+           ipaddress,
+           subnet_mask,
+           port,
+           json_process,
+           status
+    FROM sys.registry
+    WHERE name <> 'sys_procmanager'
+    `;
+    const jsonGetAllServicesPromise = mySqlConnection.execMySql(sqlStmtGetAllServices, arrayBindParamsGetAllServices);
+    const jsonGetAllServicesOutput = await jsonGetAllServicesPromise;
+    if (jsonGetAllServicesOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`Failed to get all services`, req, res);
+    const registryListOfServices = jsonGetAllServicesOutput['resultset'];
+    for (let i = 0; i < registryListOfServices.length; i++)
+    {
+        const service = registryListOfServices[i];
+        const pmId = service['pm_id'];
+        if (lookupMapTableRegistry[pmId] === undefined) lookupMapTableRegistry[pmId] = {};
+        service['json_process'] = sharedGeneral.parseJsonSafe(service['json_process']) || {};
+
+        lookupMapTableRegistry[pmId]['pm_id'] = service['pm_id'];
+        lookupMapTableRegistry[pmId]['name'] = service['name'];
+        lookupMapTableRegistry[pmId]['service_path'] = service['service_path'];
+        lookupMapTableRegistry[pmId]['pid'] = service['pid'];
+        lookupMapTableRegistry[pmId]['instances'] = service['instances'];
+        lookupMapTableRegistry[pmId]['port'] = service['port'];
+        lookupMapTableRegistry[pmId]['uptime'] = service['json_process']['pm_uptime'];
+        lookupMapTableRegistry[pmId]['cpu'] = service['json_process']['cpu'];
+        lookupMapTableRegistry[pmId]['mem'] = service['json_process']['memory'];
+        lookupMapTableRegistry[pmId]['mode'] = service['json_process']['exec_mode'];
+        lookupMapTableRegistry[pmId]['status'] = service['status'];
+    }
+
+    // Build a json list of services that need to be updated, if it exists in both pm2 list output and registry
+    // Build a json list of services to be added, if it exists in pm2 list output but doesn't exist in registry
+    // Build a json list of services to be deleted, if it exists in registry but not in pm2 list output
+    const lookupMapServicesToUpdate = {};
+    const lookupMapServicesToAdd = {};
+    const lookupMapServicesToDelete = {};
+    for (const pmId in lookupMapPm2List)
+    {
+        if (lookupMapTableRegistry[pmId] !== undefined)
+        {
+            lookupMapServicesToUpdate[pmId] = lookupMapPm2List[pmId];
+        }
+        if (lookupMapTableRegistry[pmId] === undefined)
+        {
+            lookupMapServicesToAdd[pmId] = lookupMapPm2List[pmId];
+        }
+    }
+    for (const pmId in lookupMapTableRegistry)
+    {
+        if (lookupMapPm2List[pmId] === undefined)
+        {
+            lookupMapServicesToDelete[pmId] = lookupMapTableRegistry[pmId];
+        }
+    }
+
+    // TODO: Transform update, insert, and delete into a transaction
+    // Update existing instances in registry
+    // const errorLog = [];
+    for (const pmId in lookupMapServicesToUpdate)
+    {
+        const jsonService = lookupMapServicesToUpdate[pmId];
+        const name =        jsonService['name'];
+        const servicePath = jsonService['service_path'];
+        const pid =         jsonService['pid'];
+        const instances =   jsonService['instances'];
+        const port =        jsonService['port'];
+        const jsonProcess = {};
+        jsonProcess['uptime'] = jsonService['uptime'];
+        jsonProcess['cpu'] =    jsonService['cpu'];
+        jsonProcess['mem'] =    jsonService['mem'];
+        jsonProcess['mode'] =   jsonService['mode'];
+        const stringifiedJsonProcess = JSON.stringify(jsonProcess);
+        const status =      jsonService['status'];
+
+        const arrayBindParamsUpdateRegistry = [];
+        arrayBindParamsUpdateRegistry.push(name);
+        arrayBindParamsUpdateRegistry.push(servicePath);
+        arrayBindParamsUpdateRegistry.push(pid);
+        arrayBindParamsUpdateRegistry.push(instances);
+        arrayBindParamsUpdateRegistry.push(ipAddress);
+        arrayBindParamsUpdateRegistry.push(subnetMask);
+        arrayBindParamsUpdateRegistry.push(port);
+        arrayBindParamsUpdateRegistry.push(stringifiedJsonProcess);
+        arrayBindParamsUpdateRegistry.push(status);
+        arrayBindParamsUpdateRegistry.push(pmId);
+        const sqlStmtUpdateRegistry = `
+        UPDATE sys.registry
+        SET name = ?,
+            service_path = ?,
+            pid = ?,
+            instances = ?,
+            ipaddress = ?,
+            subnet_mask = ?,
+            port = ?,
+            json_process = ?,
+            status = ?
+        WHERE pm_id = ?
+        `;
+        const jsonUpdateRegistryPromise = mySqlConnection.execMySql(sqlStmtUpdateRegistry, arrayBindParamsUpdateRegistry);
+        const jsonUpdateRegistryOutput = await jsonUpdateRegistryPromise;
+        if (jsonUpdateRegistryOutput['status'] != 'SUCCESS')
+        {
+            // errorLog.push(`Failed to update registry for service: ${name}, pm_id: ${pmId}, pid: ${pid}`);
+            return gpusGeneral.buildJsonErrorMessage(`Failed to update registry for service: ${name}, pm_id: ${pmId}, pid: ${pid}`, req, res);
+        }
+    }
+
+    // Delete from registry
+    if (Object.keys(lookupMapServicesToDelete).length > 0)
+    {
+        const arrayServicesToDelete = Object.keys(lookupMapServicesToDelete).map((k) => parseInt(k));
+        const arrayBindsByLength = Array(arrayServicesToDelete.length).fill('?');
+        const sqlStmtPartialDelete = `'` + arrayBindsByLength.join(`','`) + `'`;
+        
+        const arrayBindParamsDeleteFromRegistry = [];
+        for (const pmId of arrayServicesToDelete)
+        {
+            arrayBindParamsDeleteFromRegistry.push(pmId);
+        }
+        const sqlStmtDeleteFromRegistry = `
+        DELETE FROM sys.registry
+        WHERE pm_id IN (${sqlStmtPartialDelete})
+        `;
+        const jsonDeleteFromRegistryPromise = mySqlConnection.execMySql(sqlStmtDeleteFromRegistry, arrayBindParamsDeleteFromRegistry);
+        const jsonDeleteFromRegistryOutput = await jsonDeleteFromRegistryPromise;
+        if (jsonDeleteFromRegistryOutput['status'] != 'SUCCESS')
+        {
+            for (const pmId in lookupMapServicesToDelete)
+            {
+                const name = lookupMapServicesToDelete[pmId]['name'];
+                const pid = lookupMapServicesToDelete[pmId]['pid'];
+                // errorLog.push(`Failed to delete from registry the service: ${name}, pm_id: ${pmId}, pid: ${pid}`);
+                return gpusGeneral.buildJsonErrorMessage(`Failed to delete from registry the service: ${name}, pm_id: ${pmId}, pid: ${pid}`, req, res);
+            }
+        }
+    }
+    
+    // Add to registry
+    for (const pmId in lookupMapServicesToAdd)
+    {
+        const jsonService = lookupMapServicesToAdd[pmId];
+        const name =        jsonService['name'];
+        const servicePath = jsonService['service_path'];
+        const pid =         jsonService['pid'];
+        const instances =   jsonService['instances'];
+        const port =        jsonService['port'];
+        const jsonProcess = {};
+        jsonProcess['uptime'] = jsonService['uptime'];
+        jsonProcess['cpu'] =    jsonService['cpu'];
+        jsonProcess['mem'] =    jsonService['mem'];
+        jsonProcess['mode'] =   jsonService['mode'];
+        const stringifiedJsonProcess = JSON.stringify(jsonProcess);
+        const status = jsonService['status'];
+
+        const arrayBindParamsAddToRegistry = [];
+        arrayBindParamsAddToRegistry.push(pmId);
+        arrayBindParamsAddToRegistry.push(name);
+        arrayBindParamsAddToRegistry.push(servicePath);
+        arrayBindParamsAddToRegistry.push(pid);
+        arrayBindParamsAddToRegistry.push(instances);
+        arrayBindParamsAddToRegistry.push(ipAddress);
+        arrayBindParamsAddToRegistry.push(subnetMask);
+        arrayBindParamsAddToRegistry.push(port);
+        arrayBindParamsAddToRegistry.push(stringifiedJsonProcess);
+        arrayBindParamsAddToRegistry.push(status);
+        const sqlStmtRegisterService = `
+        INSERT INTO sys.registry (pm_id, name, service_path, pid, instances, ipaddress, subnet_mask, port, json_process, status)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        const jsonAddToRegistryPromise = mySqlConnection.execMySql(sqlStmtRegisterService, arrayBindParamsAddToRegistry);
+        const jsonAddToRegistryOutput = await jsonAddToRegistryPromise;
+        if (jsonAddToRegistryOutput['status'] != 'SUCCESS')
+        {
+            // errorLog.push(`Failed to insert into registry the service: ${name}, pm_id: ${pmId}, pid: ${pid}`);
+            return gpusGeneral.buildJsonErrorMessage(`Failed to insert into registry the service: ${name}, pm_id: ${pmId}, pid: ${pid}`, req, res);
+        }
+    }
+
+    return gpusGeneral.buildJsonSuccessMessage(`Registry heartbeat completed`, [], req, res);
+}
+apiArray.push(
+    {
+        method: 'POST',
+        handler: replyto_jsonHeartbeatRegistry,
+        path: 'jsonHeartbeatRegistry',
+        options:
+        {
+            public: true,
+            description: 'Sends a heartbeat (Updates registry)',
+            group: 'Process Management',
+            sampleParams: {}
+        }
+    }
+);
+
+// Error out if anything fails. Worst case scenario is when anything in the cache fails. Services won't be reachable. 
+// Separate heartbeat daemon into 2 functions: a heartbeat for pm2 list output to registry, and another heartbeat for registry to cache.
+// Each function can run for ex. every 30sec
+async function replyto_jsonHeartbeatCache(req, res) // This function should run every 30 seconds
+{
+    // Transform each structure into lookup maps
+    const lookupMapTableRegistry = {};
+    const lookupMapCacheRegistry = {};
+
+    // Get all instances of every service in registry
+    const arrayBindParamsGetAllServices = [];
+    const sqlStmtGetAllServices = `
+    SELECT pm_id, 
+           name, 
+           service_path,
+           pid,
+           instances,
+           ipaddress,
+           subnet_mask,
+           port,
+           json_process,
+           status
+    FROM sys.registry
+    WHERE name <> 'sys_procmanager'
+    `;
+    const jsonGetAllServicesPromise = mySqlConnection.execMySql(sqlStmtGetAllServices, arrayBindParamsGetAllServices);
+    const jsonGetAllServicesOutput = await jsonGetAllServicesPromise;
+    if (jsonGetAllServicesOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`Failed to get all services`, req, res);
+    const registryListOfServices = jsonGetAllServicesOutput['resultset'];
+    for (let i = 0; i < registryListOfServices.length; i++)
+    {
+        const service = registryListOfServices[i];
+        const pmId = service['pm_id'];
+        if (lookupMapTableRegistry[pmId] === undefined) lookupMapTableRegistry[pmId] = {};
+        service['json_process'] = sharedGeneral.parseJsonSafe(service['json_process']) || {};
+
+        lookupMapTableRegistry[pmId]['pm_id'] = service['pm_id'];
+        lookupMapTableRegistry[pmId]['name'] = service['name'];
+        lookupMapTableRegistry[pmId]['service_path'] = service['service_path'];
+        lookupMapTableRegistry[pmId]['pid'] = service['pid'];
+        lookupMapTableRegistry[pmId]['instances'] = service['instances'];
+        lookupMapTableRegistry[pmId]['ipaddress'] = service['ipaddress'];
+        lookupMapTableRegistry[pmId]['subnet_mask'] = service['subnet_mask'];
+        lookupMapTableRegistry[pmId]['port'] = service['port'];
+        lookupMapTableRegistry[pmId]['uptime'] = service['json_process']['uptime'];
+        lookupMapTableRegistry[pmId]['cpu'] = service['json_process']['cpu'];
+        lookupMapTableRegistry[pmId]['mem'] = service['json_process']['mem'];
+        lookupMapTableRegistry[pmId]['mode'] = service['json_process']['mode'];
+        lookupMapTableRegistry[pmId]['status'] = service['status'];
+    }
+
+    // Get everything in the cache for the registry (registry/*)
+    const jsonGetServicePathsOutput = cacheRegistryAdapter.getServicePaths();
+    if (jsonGetServicePathsOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`${jsonGetServicePathsOutput['message']}`, req, res);
+    const arrayServicePaths = jsonGetServicePathsOutput['result'];
+    if ( arrayServicePaths == null) return gpusGeneral.buildJsonErrorMessage(`Failed to get service paths`, req, res);
+    for (const servicePath of arrayServicePaths)
+    {
+        const jsonGetAllInstancesInCacheOutput = await cacheRegistryAdapter.getAllInstancesFromCache(servicePath);
+        if (jsonGetAllInstancesInCacheOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`${jsonGetAllInstancesInCacheOutput['message']}`, req, res);
+        const instancesInCache = jsonGetAllInstancesInCacheOutput['result'];
+        for (const pmId in instancesInCache)
+        {
+            const service = instancesInCache[pmId];
+            if (lookupMapCacheRegistry[pmId] === undefined) lookupMapCacheRegistry[pmId] = {};
+            lookupMapCacheRegistry[pmId]['pm_id'] = service['pm_id'];
+            lookupMapCacheRegistry[pmId]['name'] = service['name'];
+            lookupMapCacheRegistry[pmId]['service_path'] = service['service_path'];
+            lookupMapCacheRegistry[pmId]['pid'] = service['pid'];
+            lookupMapCacheRegistry[pmId]['instances'] = service['instances'];
+            lookupMapCacheRegistry[pmId]['ipaddress'] = service['ipaddress'];
+            lookupMapCacheRegistry[pmId]['subnet_mask'] = service['subnet_mask'];
+            lookupMapCacheRegistry[pmId]['port'] = service['port'];
+            lookupMapCacheRegistry[pmId]['uptime'] = service['uptime'];
+            lookupMapCacheRegistry[pmId]['cpu'] = service['cpu'];
+            lookupMapCacheRegistry[pmId]['mem'] = service['mem'];
+            lookupMapCacheRegistry[pmId]['mode'] = service['mode'];
+            lookupMapCacheRegistry[pmId]['status'] = service['status'];
+        }
+    }
+
+    // Build a json list of services to be updated, if it exists in both registry and cache
+    // Build a json list of services to be added, if it exists in registry but not in cache
+    // Build a json list of services to be deleted, if it exists in cache but not in registry
+    const lookupMapServicesToUpdate = {};
+    const lookupMapServicesToAdd = {};
+    const lookupMapServicesToDelete = {};
+    for (const pmId in lookupMapTableRegistry)
+    {
+        if (lookupMapCacheRegistry[pmId] !== undefined)
+        {
+            lookupMapServicesToUpdate[pmId] = lookupMapTableRegistry[pmId];
+        }
+        if (lookupMapCacheRegistry[pmId] === undefined)
+        {
+            lookupMapServicesToAdd[pmId] = lookupMapTableRegistry[pmId];
+        }
+    }
+    for (const pmId in lookupMapCacheRegistry)
+    {
+        if (lookupMapTableRegistry[pmId] === undefined)
+        {
+            lookupMapServicesToDelete[pmId] = lookupMapCacheRegistry[pmId];
+        }
+    }
+
+    // const errorLog = [];
+    // Update existing instances in cache
+    const arrayInstancesToUpdate = Object.values(lookupMapServicesToUpdate);
+    const jsonRegisterInstancesToCacheOutput = await cacheRegistryAdapter.registerInstancesToCache(arrayInstancesToUpdate);
+    if (jsonRegisterInstancesToCacheOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`${jsonRegisterInstancesToCacheOutput['message']}`, req, res);
+
+    // Delete from cache 
+    const arrayInstancesToDelete = Object.values(lookupMapServicesToDelete);
+    const jsonDeregisterInstancesFromCacheOutput = await cacheRegistryAdapter.deregisterInstancesFromCache(arrayInstancesToDelete);
+    if (jsonDeregisterInstancesFromCacheOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`${jsonDeregisterInstancesFromCacheOutput['message']}`, req, res);
+
+    // Add to cache
+    const arrayInstancesToAdd = Object.values(lookupMapServicesToAdd);
+    const jsonRegisterNewInstancesToCacheOutput = await cacheRegistryAdapter.registerInstancesToCache(arrayInstancesToAdd);
+    if (jsonRegisterNewInstancesToCacheOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`${jsonRegisterNewInstancesToCacheOutput['message']}`, req, res);
+
+    return gpusGeneral.buildJsonSuccessMessage(`Cache heartbeat completed`, [], req, res);
+}
+apiArray.push(
+    {
+        method: 'POST',
+        handler: replyto_jsonHeartbeatCache,
+        path: 'jsonHeartbeatCache',
+        options:
+        {
+            public: true,
+            description: 'Sends a heartbeat (Updates cache)',
+            group: 'Process Management',
+            sampleParams: {}
+        }
+    }
+);
+
+async function replyto_jsonFlushCache(req, res)
+{
+    const jsonFlushRegistryOutput = await cacheRegistryAdapter.flushRegistry();
+    if (jsonFlushRegistryOutput['status'] != 'SUCCESS') return gpusGeneral.buildJsonErrorMessage(`${jsonFlushRegistryOutput['message']}`, req, res);
+    return gpusGeneral.buildJsonSuccessMessage(`Registry was flushed`, [], req, res);
+}
+apiArray.push(
+    {
+        method: 'POST',
+        handler: replyto_jsonFlushCache,
+        path: 'jsonFlushCache',
+        options:
+        {
+            public: true,
+            description: 'Flushes cache of the registry information',
+            group: 'Process Management',
+            sampleParams: {}
         }
     }
 );

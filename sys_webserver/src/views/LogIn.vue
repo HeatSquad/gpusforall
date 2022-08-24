@@ -4,46 +4,41 @@
       {{ errorMessage  }}
     </b-alert>
     <b-row class="justify-content-center">
-      <b-card  v-if="!userAccountCreated" class="mt-5">
+      <b-card  v-if="!userAccountCreated" class="mt-5" style="width: 25%;">
         <b-row>
           <b-col>
             <b-form-group id="inputGroupUserName" label="User Name" label-for="inputUserName">
                 <b-form-input id="inputUserName" v-model="userName" placeholder="Enter user name" maxLength="100" required></b-form-input>
             </b-form-group>
-            <b-form-group id="inputGroupFirstName" label="First Name" label-for="inputFirstName">
-                <b-form-input id="inputFirstName" v-model="firstName" placeholder="Enter first name" maxLength="100" required></b-form-input>
-            </b-form-group>
-            <b-form-group id="inputGroupLastName" label="Last Name" label-for="inputLastName">
-                <b-form-input id="inputLastName" v-model="lastName" placeholder="Enter last name" maxLength="100" required></b-form-input>
-            </b-form-group>
-            <b-form-group id="inputGroupDateOfBirth" label="Date of Birth" label-for="inputDateOfBirth">
-                <b-form-input id="inputDateOfBirth" v-model="dateOfBirth" type="date" required></b-form-input>
-            </b-form-group>
-            <b-form-group id="inputGroupEmail" label="Email" label-for="inputEmail">
-                <b-form-input id="inputEmail" v-model="email" type="email" placeholder="Enter email" maxLength="320"  required></b-form-input>
-                <template v-if="invalidEmailAddress"><span style="color: red">Invalid email</span></template>
-            </b-form-group>
             <b-form-group id="inputGroupPassword" label="Password" label-for="inputPassword">
                 <b-form-input id="inputPassword" v-model="password" type="password" maxLength="50" required></b-form-input>
             </b-form-group>
-            <b-form-group id="inputGroupConfirmPassword" label="Confirm Password" label-for="inputConfirmPassword">
-                <b-form-input id="inputConfirmPassword" v-model="confirmPassword" type="password" maxLength="50" required></b-form-input>
-                <template v-if="passwordDoesNotMatch"><span style="color: red">Passwords do not match</span></template>
-            </b-form-group>
           </b-col>
         </b-row>
+        
+        <b-row class="mb-3">
+          <b-col class="text-left"><b-link to="/forgot-username">Forgot your user name?</b-link></b-col>
+          <b-col class="text-right"><b-link to="/forgot-password">Forgot your password?</b-link></b-col>
+        </b-row>
+
         <b-row class="justify-content-center">
           <b-button
             type="submit"
             :disabled="userName == '' || firstName == '' || lastName == '' || dateOfBirth == '' || email == '' || password == '' || confirmPassword == '' || creatingUser"
             @click="performSignUp"
           >
-            Sign Up
+            Log In
           </b-button>
         </b-row>
-        <b-row class="justify-content-center mt-2">
-          <b-link to="/login">Already have an account?</b-link>
+
+        <b-row class="justify-content-center">
+          <p>Don't have an account? <b-link to="/signup">Sign Up</b-link></p>
         </b-row>
+
+        <b-row class="justify-content-center">
+          <b-link to="/email-activation">Need another activation email?</b-link>
+        </b-row>
+
       </b-card>
     </b-row>
   </b-container>
@@ -138,7 +133,7 @@ export default {
 
       const jsonSendActivationEmailParams = {};
       jsonSendActivationEmailParams['email'] = this.email;
-      const jsonSendActivationEmailApiUrl = '/services/jsonSendActivationEmail';
+      const jsonSendActivationEmailApiUrl = '/jsonSendActivationEmail';
       const jsonSendActivationEmailOutput = await this.performPostHttpRequest(jsonSendActivationEmailApiUrl, jsonSendActivationEmailParams);
       console.log(jsonSendActivationEmailOutput);
       if (jsonSendActivationEmailOutput['status'] != 'SUCCESS')

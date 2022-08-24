@@ -34,7 +34,7 @@
             </b-nav-item-dropdown>
         </b-navbar-nav>
         <b-navbar-nav v-else class="ml-5 mr-5">
-          <b-nav-item class="mr-3">Log In</b-nav-item>
+          <b-nav-item to="/login" class="mr-3">Log In</b-nav-item>
           <b-button to="/signup">Sign Up</b-button>
         </b-navbar-nav>
       </b-collapse>
