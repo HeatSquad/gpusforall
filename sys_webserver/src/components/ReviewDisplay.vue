@@ -1,5 +1,6 @@
 <template>
     <b-container fluid>
+        <h3>Reviews</h3>
         <b-card v-for="item in reviewsForList" :key="item.reviewid">
             <b-row class="justify-content-between">
                 <p><b>{{ item.first_name }} {{ item.last_name }}</b></p> 
