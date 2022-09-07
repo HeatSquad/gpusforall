@@ -4,25 +4,40 @@ const gpusGeneral = require('../../shared_server/general.js');
 const apiArray = []
 module.exports = apiArray;
 
-async function replyto_jsonAddToCart(req, res)
+async function replyto_jsonUpdateCart(req, res)
 {
-    if (req.body.productid === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Missing required parameter:`);
     if (req.body.userid === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Missing required parameter:`);
-    if (req.body.quantity === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Missing required parameter:`);
-    if (req.body.created_by === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Missing required parameter:`);
+    if (req.body.cart_items === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Missing required parameter:`);
     if (req.body.modified_by === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Missing required parameter:`);
 
-    const arrayBindParams = [];
-    arrayBindParams.push(req.body.productid);
-    arrayBindParams.push(req.body.userid);
-    arrayBindParams.push(req.body.quantity);
-    arrayBindParams.push(req.body.created_by);
-    arrayBindParams.push(req.body.modified_by);
-    arrayBindParams.push('N');
+    let sqlInsertIntoshoppingcart =
+        `INSERT INTO shopping_cart (cart_items, userid, created_by, modified_by)
+            VALUES(?, ?, ?, ?)`;
 
-    const sqlInsertIntoshoppingcart =
-        `INSERT INTO shopping_cart 
-            VALUES(?, ?, ?, ?, ?, ?)`;
+    const arrayBindParams = [];
+
+    if(req.body.cartid)
+    {
+        sqlInsertIntoshoppingcart =
+        `UPDATE shopping_cart
+         SET cart_items = ?, modified_by = ?
+         WHERE cartid = ?
+           AND userid = ?
+           AND deleted <> 'Y'`;
+        
+        arrayBindParams.push(req.body.cart_items);
+        arrayBindParams.push(req.body.modified_by);
+        arrayBindParams.push(req.body.cartid);
+        arrayBindParams.push(req.body.userid);
+    }
+    else
+    {
+        arrayBindParams.push(req.body.cart_items);
+        arrayBindParams.push(req.body.userid);
+        arrayBindParams.push(req.body.created_by);
+        arrayBindParams.push(req.body.modified_by);
+    }
+
     const jsonGetSysDataPromise = mySqlConnection.execMySql(sqlInsertIntoshoppingcart, arrayBindParams);
     const jsonGetSysDataOutput = await jsonGetSysDataPromise;
     if (jsonGetSysDataOutput['status'] != 'SUCCESS') return gpusGeneral.replywith_jsonErrorMessage(`Error message:`, req, res);
@@ -32,13 +47,13 @@ async function replyto_jsonAddToCart(req, res)
 
 apiArray.push(
     {
-        method: 'POST',
-        handler: replyto_jsonAddToCart,
-        path: 'jsonAddToCart',
+        method: 'PUT',
+        handler: replyto_jsonUpdateCart,
+        path: 'jsonUpdateCart',
         options:
         {
             public: true,
-            description: 'Add a product to ShoppingCart',
+            description: 'Update the Shopping Cart',
             group: 'shoppingcart'
         }
     }
