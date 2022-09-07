@@ -72,29 +72,6 @@
   </div>
 </template>
 
-<script>
-export default {
-  data: function() {
-    return {
-      loggedIn: true,
-      searchString: ''
-    }
-  },
-  methods:
-  {
-    performLogOut() {
-      this.loggedIn = false;
-    },
-    async searchProduct(e) 
-    {
-      console.log(this.searchString);
-      e.preventDefault();
-      this.$router.push({name: 'Product Search', params: {'product_name': this.searchString}});
-    }
-  }
-}
-</script>
-
 <style scoped lang="scss">
 html,body {
   width: 100%;
