@@ -59,16 +59,21 @@ apiArray.push(
     }
 );
 
-async function replyto_jsonRemoveFromShoppingCart(req, res)
+async function replyto_jsonClearShoppingCart(req, res)
 {
-    if (req.body.shoppingcartid === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Error message:`, req, res);
+    if (req.body.cartid === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Error message:`, req, res);
+    if (req.body.userid === undefined) return gpusGeneral.replywith_jsonInvalidParameters(`Error message:`, req, res);
 
     const arrayBindParams = [];
-    arrayBindParams.push(req.body.shoppingcartid);
+    arrayBindParams.push(req.body.cartid);
+    arrayBindParams.push(req.body.userid);
 
-    const sqlInsertIntoshoppingcart =
-        `UPDATE shopping_cart set deleted = 'Y' WHERE shoppingcartid = ?`;
-    const jsonSetDataPromise = mySqlConnection.execMySql(sqlInsertIntoshoppingcart, arrayBindParams);
+    const sqlClearShoppingCart =
+        `UPDATE shopping_cart 
+         SET cart_items = '{}'
+         WHERE cartid = ?
+           AND userid = ?`;
+    const jsonSetDataPromise = mySqlConnection.execMySql(sqlClearShoppingCart, arrayBindParams);
     const jsonSetDataOutput = await jsonSetDataPromise;
     if (jsonSetDataOutput['status'] != 'SUCCESS') return gpusGeneral.replywith_jsonErrorMessage(`Error message:`, req, res);
 
@@ -77,13 +82,13 @@ async function replyto_jsonRemoveFromShoppingCart(req, res)
 
 apiArray.push(
     {
-        method: 'POST',
-        handler: replyto_jsonRemoveFromShoppingCart,
-        path: 'jsonRemoveFromShoppingCart',
+        method: 'PUT',
+        handler: replyto_jsonClearShoppingCart,
+        path: 'jsonClearShoppingCart',
         options:
         {
             public: true,
-            description: 'Remove a product from users shoppingcart',
+            description: 'Clear the shoppingcart',
             group: 'shoppingcart'
         }
     }
